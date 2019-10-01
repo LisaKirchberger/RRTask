@@ -34,6 +34,20 @@ anglesOversizedY = -(rangeOversizedY/2-Par.RadPerPix) : Par.RadPerPix : rangeOve
 morphedGrating = interp2(xang, yang, OversizedGratingRGB, sphr_Vert, sphr_Horiz);
 
 
+
+%% Create a morphed red circle if this is the figure texture
+
+% Create (round) circle on oversized Screen
+[xe,ye] = meshgrid((-Par.Screenx:Par.Screenx)./Par.PixPerDeg, fliplr((-Par.Screenx:Par.Screenx)./Par.PixPerDeg));  
+OversizedEcc = hypot(xe-Par.FigX,ye-Par.FigY); % convert to Eccentricity
+OversizedCircle = zeros(size(xe));
+OversizedCircle(OversizedEcc<Par.FigSize/2) = 1;
+
+% Morph it
+morphedCircle = interp2(xang, yang, OversizedCircle, sphr_Vert, sphr_Horiz);
+
+imagesc(morphedCircle)
+
 %% now show in Cogent TEMPORARY
 cgloadlib
 cgopen(Par.Screenx, Par.Screeny, 32,Par.Refresh , 0)

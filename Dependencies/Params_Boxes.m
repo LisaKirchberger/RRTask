@@ -28,10 +28,13 @@ Par.grey = [Par.grey Par.grey Par.grey];
 Par.contrast = 0.9;
 Par.whitelum = Par.greylum + Par.contrast * Par.lumrange/2;
 Par.blacklum = Par.greylum - Par.contrast * Par.lumrange/2;
-Par.Optoport = [];
 Par.PixPerDeg = (Par.Screenx/2)/atand((0.5*Par.ScreenWidth)/Par.ScreenDistance);
 Par.DegPerPix = 1/Par.PixPerDeg;
 Par.RadPerPix = Par.DegPerPix*pi/180;
+
+Par.FigX = 30;
+Par.FigY = 20;
+Par.FigSize = 35;
 Par.SpatialFreq = 0.08;
 Par.Period = round(Par.PixPerDeg./Par.SpatialFreq);
 
@@ -40,3 +43,4 @@ Par.MouseposY = 14.5;           % distance of mouse eyes in cm from bottom of th
 Par.ScreenAngle = 90;           % in degrees, measured from table surface in front of screen to plane of screen (always 90 basically)
 Par.ScreenDistanceBottom = 11.8;% distance of screen, in cm at bottom of screen (or perpendicular to the mouse, only differs if the Screen has an angle) 
 
+Par.Optoport = [];
