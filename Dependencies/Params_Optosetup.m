@@ -1,3 +1,5 @@
+global Par
+
 % Serial connections
 Par.sport = serial('com3');
 Par.running_port = serial('com12');

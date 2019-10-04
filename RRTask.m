@@ -191,7 +191,6 @@ try
         Log.RewardDur(Trial) = str2double(get(Gui.RewardDur, 'string'));
         Log.Threshold(Trial) = str2double(get(Gui.Threshold, 'string'));
         Log.GoTrialProportion(Trial) = str2double(get(Gui.GoTrialProportion, 'string'));
-        Log.OptoStim(Trial) = get(Gui.OptoStim, 'value');
         Log.Trial(Trial) = Trial;
         Log.TimeToLick(Trial) = str2double(get(Gui.TimeToLick, 'string'));
         Log.Passivedelay(Trial) = str2double(get(Gui.Passivedelay, 'string'));
@@ -266,47 +265,20 @@ try
         
         %% make the Visual Stimulus
         
-        BGgrating = makeFullScreenGrating;
         
+        %% how to show it
         
-        BGgrating = correctDisplay2(makegrating2GammaconV(Set.Range, Set.BGorient, Set.PixPerDeg * 1/Set.prefsf, Set.BGPhase, bgminlum, bgmaxlum, 'gammacon'));
-        % morphed_circle = correctDisplay2(selectcircle(Set.Range, Set.FigSize * Set.PixPerDeg ,x , y), 1);
-        % morphed_circle(isnan(morphed_circle)) = 0;
-        % circle = logical(morphed_circle);
-        circle = logical(correctDisplay2(selectcircle(Set.Range, Set.FigSize * Set.PixPerDeg ,x , y), 1));
-        FGgrating = correctDisplay2(makegrating2GammaconV(Set.Range, Set.Figureorient, Set.PixPerDeg * 1/Set.prefsf, FigurePhase, Set.minlum, Set.maxlum,'gammacon'));
-        
+        BGcogentGrating = makeFullScreenGrating(Ori,Phase,1); % 1 with circle, 0 without
+        FGcogentGrating = makeFullScreenGrating(Ori,Phase,0); % 1 with circle, 0 without
 
-            
-            % Full Screen Checkerboard Stimulus
-            cgmakesprite(1,Par.Screenx,Par.Screeny,Par.grey)
-            cgsetsprite(1)
-            whitelum = Par.greylum + Log.Contrast(Trial) * Par.lumrange/2;
-            blacklum = Par.greylum - Log.Contrast(Trial) * Par.lumrange/2;
-            white = eval([gammaconversion '(whitelum,''lum2rgb'')']);
-            black = eval([gammaconversion '(blacklum,''lum2rgb'')']);
-            cgsetsprite(0)
-            
-            
-            % Create an Aperture
-            cgmakesprite(2,Par.Screenx,Par.Screeny,Par.grey)
-            cgsetsprite(2)
-            cgpencol(1,0,0)
-            if Log.ApertureL(Trial) || Log.ApertureR(Trial)
-                if Log.ApertureL(Trial)
-                    cgellipse(-Par.ApertureX,Par.ApertureY,Par.ApertureSz,Par.ApertureSz,'f');
-                end
-                if Log.ApertureR(Trial)
-                    cgellipse(Par.ApertureX,Par.ApertureY,Par.ApertureSz,Par.ApertureSz,'f');
-                end
-            else
-                cgrect(0,0,Par.Screenx, Par.Screeny)
-            end
+        cgloadarray(1,Par.Screenx,Par.Screeny,cogentGrating)
+        cgdrawsprite(1,0,0)
+        cgsetsprite(0)
+        cgflip(Par.grey)
+   
             cgtrncol(2,'r')
             cgsetsprite(0)
-            
-        end
-        
+           
         
         
         %% ITI and Cleanbaseline (fixedITI is at end of trial!)
