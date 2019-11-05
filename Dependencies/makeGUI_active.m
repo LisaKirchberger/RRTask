@@ -27,9 +27,32 @@ Gui.FAtext = uicontrol('Style', 'text', 'Position', [200 10 40 30], 'String', '0
 uicontrol('Style', 'text', 'Position', [240 10 40 30], 'String', 'Corr Rejec');
 Gui.CRtext = uicontrol('Style', 'text', 'Position', [280 10 40 30], 'String', '0');
 
+% Visual Stimulus
+% Aperture
+uicontrol('Style','text','Position',[10 65 90 20],'String','Vis Aperture');
+uicontrol('Style','text','Position',[90 69 15 15],'String','L');
+uicontrol('Style','text','Position',[120 69 15 15],'String','R');
+Gui.ApertureL = uicontrol('Style', 'checkbox' , 'Position', [102 69 15 15], 'value', 0);
+Gui.ApertureR = uicontrol('Style', 'checkbox' , 'Position', [132 69 15 15], 'value', 0);
+% Contrast
+uicontrol('Style','text','Position',[10 45 90 20],'String','Vis Contrast');
+Gui.Contrast = uicontrol('Style', 'edit' , 'Position', [100 45 40 20], 'String', '0');
+
+% Auditory Stimulus
+% Intensity
+uicontrol('Style','text','Position',[10 90 90 20],'String','Aud Intensity');
+Gui.AudIntensity = uicontrol('Style', 'edit' , 'Position', [100 90 40 20], 'String', '0');
+% Frequency
+uicontrol('Style','text','Position',[10 110 90 20],'String','Aud Freq');
+Gui.AudFreq = uicontrol('Style', 'edit' , 'Position', [80 110 60 20], 'String', '13000');
+
+% OptoStim
+uicontrol('Style','text','Position',[10 137 90 20],'String','OptoStim');
+Gui.OptoStim = uicontrol('Style', 'checkbox' , 'Position', [100 140 15 15], 'value', 0);
+
 % GoTrialProportion
-uicontrol('Style','text','Position',[10 150 90 20],'String','GoTrialProportion');
-Gui.GoTrialProportion = uicontrol('Style', 'edit' , 'Position', [100 150 40 20], 'String', '50');
+uicontrol('Style','text','Position',[10 165 90 20],'String','GoTrialProportion');
+Gui.GoTrialProportion = uicontrol('Style', 'edit' , 'Position', [100 165 40 20], 'String', '50');
 
 % Currtrial
 uicontrol('Style','text','Position',[10 210 50 20],'String','Currtrial');
@@ -54,8 +77,10 @@ Gui.StopButton = uicontrol('Style','pushbutton','Position',[240 235 75 20],'Stri
 Gui.StartButton = uicontrol('Style','pushbutton','Position',[150 235 75 20],'String','Start','Callback',@startfunction);
 
 % CleanBaseLine
-uicontrol('Style','text','Position',[185 87 90 20],'String','CleanBaseline');
-Gui.CleanBaseline = uicontrol('Style', 'edit' , 'Position', [270 90 40 20], 'String', '2');
+uicontrol('Style','text','Position',[150 87 90 20],'String','CleanBaseline');
+Gui.CleanBaselineMin = uicontrol('Style', 'edit' , 'Position', [240 90 30 20], 'String', '0');
+Gui.CleanBaselineMax = uicontrol('Style', 'edit' , 'Position', [280 90 30 20], 'String', '2');
+
 
 % Passives
 uicontrol('Style','text','Position',[185 137 90 20],'String','Passive Perc');
@@ -65,7 +90,7 @@ Gui.Passivedelay = uicontrol('Style', 'edit' , 'Position', [270 120 40 20], 'Str
 
 % TimeToLick
 uicontrol('Style','text','Position',[185 157 90 20],'String','TimeToLick');
-Gui.TimeToLick = uicontrol('Style', 'edit' , 'Position', [270 160 40 20], 'String', '1.5');
+Gui.TimeToLick = uicontrol('Style', 'edit' , 'Position', [270 160 40 20], 'String', '1');
 
 
 % performance plot

@@ -1,5 +1,5 @@
 /* Original DualLick15_WM + integrated Servo communication
-/ Opto Setup usually COM3
+/ Opto Setup usually COM16
 / WF Setup usually COM9
 *
  *  Servo
@@ -104,8 +104,8 @@ void checkSerial()
         break;
       case 'E':
         Enable = Serial.parseInt(); // '1' is right '2' is left
-        Serial.println('D');
         break;
+        // change Lisa: not sending back anything when IE
       case 'D':
         Enable = 0;
         Serial.println('D');
@@ -410,4 +410,3 @@ void loop() {
     Indx = 0;
   }
 }
-
