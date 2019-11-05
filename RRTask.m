@@ -11,9 +11,10 @@ try
     % On Go Trials mouse has to lick to get a reward
     % On No Go Trials there is no reward, but a 5s timeout if the mouse licks
            
-    addpath(genpath('Dependencies'))
-    addpath(genpath('Analysis'))
+    addpath(genpath(fullfile(pwd,'Dependencies')))
+    addpath(genpath(fullfile(pwd,'Analysis')))
     
+    addpath('Dependencies')
     global Par Log %#ok<TLEV>
     
     %% Experiment Parameters
@@ -24,7 +25,6 @@ try
     Log.Task = 'RRTask';
     Log.Mouse = answer{1};
     run checkMouse
-    run MouseParams
     
     Log.Expnum = answer{2};
     Log.Date = answer{3};

@@ -1,9 +1,9 @@
 %% checks is Mousename is spelled correctly
 
 correctNamesTest = {'Test'};
-correctNames191801 = {'Adele', 'Beyonce', 'Celine', 'Dion', 'Eminem', 'Fergie', 'George', 'Harrison'};
-correctNames191803 = {'Arja', 'Bran', 'Cersei', 'Daenerys', 'Eddard', 'Fergon', 'Galeo', 'Hodor'};
-correctNames191806 = {};
+correctNames191801 = {};
+correctNames191803 = {};
+correctNames191806 = {'Ariel', 'Bambi', 'Cruella'};
 correctNames = [correctNamesTest correctNames191801 correctNames191803 correctNames191806];
 
 % compare with input mouse name
@@ -21,20 +21,34 @@ if Namecmp == 0
     end
 end
 
-try
-    if ~isempty(Log.ControlMouse)
-        Namecmp = sum(strcmp(Log.ControlMouse, correctNames));
-        if Namecmp == 0
-            dlgTitle    = 'User Question';
-            dlgQuestion = sprintf('Are you sure you wrote the name correctly? You gave %s as input', Log.ControlMouse);
-            choiceName = questdlg(dlgQuestion,dlgTitle,'Correct','Change Name', 'Change Name'); %Change Name = default
-            switch choiceName
-                case 'Correct'
-                    fprintf('you chose to stick with %s /n', Log.ControlMouse);
-                case 'Change Name'
-                    Log.ControlMouse = correctNames{menu('Choose the Mouse',correctNames)};
-            end
-        end
-    end
-catch
+% Mouse specific Parameters for RRTask
+% Figure and Ground Orientations:
+% 0 is horizontal
+% 90 is vertical
+
+switch Log.Mouse
+    case 'Test'
+        Par.GoFigOrient = 0;
+        Par.GoBgOrient = 90;
+        Par.NoGoFigOrient = 45;
+        Par.NoGoBgOrient = 135;
+        
+    case 'Ariel'
+        Par.GoFigOrient = 0;
+        Par.GoBgOrient = 90;
+        Par.NoGoFigOrient = 45;
+        Par.NoGoBgOrient = 135;
+        
+    case 'Bambi'
+        Par.GoFigOrient = 45;
+        Par.GoBgOrient = 135;
+        Par.NoGoFigOrient = 0;
+        Par.NoGoBgOrient = 90;
+        
+    case 'Cruella'
+        Par.GoFigOrient = 90;
+        Par.GoBgOrient = 0;
+        Par.NoGoFigOrient = 135;
+        Par.NoGoBgOrient = 45;
+        
 end
