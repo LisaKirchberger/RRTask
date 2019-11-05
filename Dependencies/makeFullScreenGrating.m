@@ -1,4 +1,4 @@
-function cogentGrating = makeFullScreenGrating(Orientation,Phase,RedCircle)
+function cogentGrating = makeFullScreenGrating(Orientation,Phase,RedCircle,gammaconversion)
 
 global Par
 

@@ -1,17 +1,20 @@
 %%
 clear all %#ok<CLALL>
 clc
+
 try
     %% Structure of this task:
     % Mouse is head fixed and sits in a tube setup or runs (running is not relevant for task) on a treadmill
-    % On Go Trials the mouse is presented with an auditory stimulus (frequency of the tone can be varied) and/or an
-    % optogenetic stimulus The start of a trial is marked by a full screen checkerboard stimulus combined with
-    % optogenetic stimulation on go trials and nothing appears on no go trials
-    % On Go Trials mouse has to lick to get a reward,
+    % On Go Trials the mouse is presented with a figure ground stimulus with certain orientations for figure and ground (needs to be set for
+    % each mouse in MouseParams before start of training. On NoGo Trials a figure-ground stimulus with different orientations appears that is
+    % not rewarded
+    % On Go Trials mouse has to lick to get a reward
     % On No Go Trials there is no reward, but a 5s timeout if the mouse licks
            
     addpath(genpath('Dependencies'))
     addpath(genpath('Analysis'))
+    
+    global Par Log %#ok<TLEV>
     
     %% Experiment Parameters
     prompt = {'Mouse Name', 'Exp Nr', 'Date'};
@@ -39,23 +42,14 @@ try
             keyboard
         end
     end
-    
-    if strcmp(Log.Setup, 'WFsetup') || strcmp(Log.Setup, 'Optosetup')
-        run SetOptoOptions
-    else
-        Log.Laserpower = 'NaN';
-        Log.LaserColor = 'Red';
-        Par.MultiOpto = 0;
-        Par.ModulatedArduino = 0;
-    end
-    
+
     
     %% Saving location of Logfile 
     
     % Saving Location
     Matlabpath = pwd;
     if strcmp(Log.Setup(1:3), 'Box')
-        pathend = strfind(Matlabpath, 'MouseTraining')-1;
+        pathend = strfind(Matlabpath, 'RRTask')-1;
         Par.Save_Location = [Matlabpath(1:pathend) 'Logfiles'];
     else
        Par.Save_Location = fullfile('Z:\Lisa\FF_FB_Plasticity\Behavior_LOGs', Log.Task); 
@@ -146,36 +140,6 @@ try
     catch
         Par.RecordRunning = 0;
     end
-    
-    % start the connection to the Blinking Mask Arduino if there is a blink mask
-    try
-        if strcmp(get(Par.mask_port, 'status'), 'closed') 
-            fopen(Par.mask_port);
-        end
-        set(Par.mask_port, 'baudrate', 57600);
-        set(Par.mask_port, 'timeout', 0.1);
-        if Par.mask_port.BytesAvailable
-            flushinput(Par.mask_port); % delete everything that was in the buffer
-        end
-        Par.RecordBlinkMask = 1;
-    catch
-        Par.RecordBlinkMask = 0;
-    end
-    
-    
-    % start the connection to the Laser Modulation Arduino if you're using MultiOpto
-    if Par.ModulatedArduino == 1
-        set(Par.Optoserial,'InputBufferSize', 10240)
-        if strcmp(get(Par.Optoserial, 'status'), 'closed')
-            fopen(Par.Optoserial);
-        end
-        set(Par.Optoserial, 'baudrate', 250000);
-        set(Par.Optoserial, 'timeout', 0.1);
-    end
-    
-    
-    
-    
 
     %% make the GUI & initialize variables
     run makeGUI_active
@@ -189,7 +153,7 @@ try
     MissCounter = 0;
     FACounter = 0;
     CRCounter = 0;
-    OptoMatrix = [];
+
     
     %% Main Script
     while ~StartSession
@@ -216,22 +180,25 @@ try
         Reaction = [];
         ValveOpenTime = 0;
         
+        % Initialization time timer (subtract from ITI):
+        InitializeTimer = tic;
         
         %% Read in Parameters from the GUI
         
         Log.RewardDur(Trial) = str2double(get(Gui.RewardDur, 'string'));
         Log.Threshold(Trial) = str2double(get(Gui.Threshold, 'string'));
         Log.GoTrialProportion(Trial) = str2double(get(Gui.GoTrialProportion, 'string'));
-        Log.OptoStim(Trial) = get(Gui.OptoStim, 'value');
         Log.Trial(Trial) = Trial;
         Log.TimeToLick(Trial) = str2double(get(Gui.TimeToLick, 'string'));
+        Log.VisDuration(Trial) = str2double(get(Gui.VisDuration, 'string'));
+        Log.GraceDuration(Trial) = str2double(get(Gui.GraceDuration, 'string'));
         Log.Passivedelay(Trial) = str2double(get(Gui.Passivedelay, 'string'));
         
         
         % send Rewardtime, Threshold and Passvie Delay to Arduino
-        sendtoard(Par.sport, ['IL ' get(Gui.RewardDur, 'String')])
-        sendtoard(Par.sport, ['IF ' get(Gui.Threshold, 'String')])
-        sendtoard(Par.sport, ['IT ' num2str(Log.Passivedelay(Trial)*1000)])
+        fprintf(Par.sport, ['IL ' get(Gui.RewardDur, 'String')]);
+        fprintf(Par.sport, ['IF ' get(Gui.Threshold, 'String')]);
+        fprintf(Par.sport, ['IT ' num2str(Log.Passivedelay(Trial)*1000)]);
         
 
         %% Make a Trial Matrix with miniblocks if TrialMatrix is empty
@@ -242,11 +209,7 @@ try
             Miniblock(1:round(Log.GoTrialProportion(Trial)/(100/MiniLength)))= 1;
             TrialMatrix = Miniblock(randperm(MiniLength));
         end
-        
-        if isempty(OptoMatrix) && Par.MultiOpto == 1
-            OptoMatrix = 2:6;
-            OptoMatrix = OptoMatrix(randperm(length(OptoMatrix)));
-        end
+
         
         %% Set the Currtrial
         
@@ -291,14 +254,7 @@ try
         
         
         %% check for communication from the serial port
-        
-        % Sync the Mask to the Trial onset
-        if Par.RecordBlinkMask
-            fprintf(Par.mask_port, 'T');     % the beginning of a trial is marked by sending a 'T'
-            if Par.mask_port.BytesAvailable
-                flushinput(Par.mask_port);   % delete everything that was in the buffer
-            end
-        end
+
         RunningTimer = tic; %use this later to subtract difference to stimulus onset
         checkRunning
         checkforLicks      % only using 'right' port
@@ -306,202 +262,49 @@ try
         
         %% make the Visual Stimulus
         
-        Log.Contrast(Trial) = str2double(get(Gui.Contrast, 'string'))/100;
-        Log.FgPhase(Trial) = 
-        Log.BgPhase(Trial) = 
-        
-        BGcogentGrating = makeFullScreenGrating(Log.BgOri(Trial),Phase,1); % 1 with circle, 0 without
-        FGcogentGrating = makeFullScreenGrating(Log.FgOri(Trial),Phase,0); % 1 with circle, 0 without
-
-        cgloadarray(1,Par.Screenx,Par.Screeny,cogentGrating)
-        cgdrawsprite(1,0,0)
+        % Figure and Background gratings:
+        Log.FgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
+        Log.BgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
+        BGcogentGrating = makeFullScreenGrating(Log.BgOri(Trial),Log.BgPhase(Trial),1,gammaconversion); % 1 with circle, 0 without
+        FGcogentGrating = makeFullScreenGrating(Log.FgOri(Trial),Log.FgPhase(Trial),0,gammaconversion); % 1 with circle, 0 without
+        % put figure into sprite 1
+        cgmakesprite(1,Par.Screenx,Par.Screeny,Par.grey)
+        cgsetsprite(1)
+        cgloadarray(12,Par.Screenx,Par.Screeny,BGcogentGrating)
+        cgtrncol(12,'r')
+        cgloadarray(11,Par.Screenx,Par.Screeny,FGcogentGrating)
+        cgdrawsprite(11,0,0)
+        cgdrawsprite(12,0,0)
         cgsetsprite(0)
-        cgflip(Par.grey)
-   
-            cgtrncol(2,'r')
-            cgsetsprite(0)
-           
+
+        
+        %% look at how long initialization took and subtract from ITI
+        subtract_Timer = toc(InitializeTimer); clear InitializeTimer
         
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        if Log.Contrast(Trial)
-            Log.ApertureL(Trial) = get(Gui.ApertureL, 'value');
-            Log.ApertureR(Trial) = get(Gui.ApertureR, 'value');
-        else
-            Log.ApertureL(Trial) = NaN;
-            Log.ApertureR(Trial) = NaN;
-        end
-        
-        if Log.Contrast(Trial)
-            % Full Screen Checkerboard Stimulus
-            cgmakesprite(1,Par.Screenx,Par.Screeny,Par.grey)
-            cgsetsprite(1)
-            whitelum = Par.greylum + Log.Contrast(Trial) * Par.lumrange/2;
-            blacklum = Par.greylum - Log.Contrast(Trial) * Par.lumrange/2;
-            white = eval([gammaconversion '(whitelum,''lum2rgb'')']);
-            black = eval([gammaconversion '(blacklum,''lum2rgb'')']);
-            xpix = -Par.Screenx/2 - Par.CheckSz : Par.CheckSz : Par.Screenx/2 + Par.CheckSz;
-            ypix = -Par.Screeny/2  - Par.CheckSz : Par.CheckSz : Par.Screeny/2 + Par.CheckSz;
-            alternate = 1;
-            for x = 1:length(xpix)
-                for y = 1:length(ypix)
-                    alternate = 1 - alternate;
-                    if alternate == 1
-                        cgrect(xpix(x), ypix(y), Par.CheckSz, Par.CheckSz, [white, white, white])
-                    else
-                        cgrect(xpix(x), ypix(y), Par.CheckSz, Par.CheckSz, [black, black, black])
-                    end
-                end
-            end
-            cgsetsprite(0)
-            
-            
-            % Create an Aperture
-            cgmakesprite(2,Par.Screenx,Par.Screeny,Par.grey)
-            cgsetsprite(2)
-            cgpencol(1,0,0)
-            if Log.ApertureL(Trial) || Log.ApertureR(Trial)
-                if Log.ApertureL(Trial)
-                    cgellipse(-Par.ApertureX,Par.ApertureY,Par.ApertureSz,Par.ApertureSz,'f');
-                end
-                if Log.ApertureR(Trial)
-                    cgellipse(Par.ApertureX,Par.ApertureY,Par.ApertureSz,Par.ApertureSz,'f');
-                end
-            else
-                cgrect(0,0,Par.Screenx, Par.Screeny)
-            end
-            cgtrncol(2,'r')
-            cgsetsprite(0)
-            
-        end
-        
-        
-        %% make the Auditory Stimulus
-        
-        Log.AudFreq(Trial) = str2double(get(Gui.AudFreq, 'string'));
-        Log.AudIntensity(Trial) = str2double(get(Gui.AudIntensity, 'string'))/100;
-        
-        if Log.AudIntensity(Trial)
-            soundwav = sin((1:Par.AudDuration*Par.Aud_sampfrequency)*2*pi*Log.AudFreq(Trial)/Par.Aud_sampfrequency);
-            cgsound('MatrixSND',1,soundwav,Par.Aud_sampfrequency)
-            cgsound('vol',1,Log.AudIntensity(Trial))
-        end
-        
-        
-        
-        %% Set the TrialCond 
-        
-        if Log.Trialtype(Trial) == 1 % Go Stimulus
-            if Log.OptoStim(Trial) == 1 % Opto
-                if Par.MultiOpto == 1 % Multiple Opto Laser Powers
-                    % pick a Laser Power for this Trial
-                    Log.TrialCond(Trial) = OptoMatrix(1);
-                    OptoMatrix(1) = [];
-                    switch Log.TrialCond(Trial)
-                        case 1 % No Go
-                        case 2 % 0.1mW
-                            Log.OptoValueArduino(Trial) = 77;
-                            Log.OptoValue(Trial) = 0.1;
-                        case 3 % 0.5mW
-                            Log.OptoValueArduino(Trial) = 142;
-                            Log.OptoValue(Trial) = 0.5;
-                        case 4 % 1.0mW
-                            Log.OptoValueArduino(Trial) = 165;
-                            Log.OptoValue(Trial) = 1;
-                        case 5 % 5.0mW
-                            Log.OptoValueArduino(Trial) = 184;
-                            Log.OptoValue(Trial) = 5;
-                        case 6 % 10.0mW
-                            Log.OptoValueArduino(Trial) = 200;
-                            Log.OptoValue(Trial) = 10;
-                    end
-                elseif Par.MultiOpto == 0 && Par.ModulatedArduino == 1 % Modulated Arduino but only one Power
-                    Log.TrialCond(Trial) = Par.OptoTrialCond;
-                    Log.OptoValueArduino(Trial) = Par.OptoValueArduino;
-                    Log.OptoValue(Trial) = Par.Laserpower;
-                elseif Par.MultiOpto == 0 && Par.ModulatedArduino == 0  % Normal Arduino with one Power
-                    Log.TrialCond(Trial) = Par.OptoTrialCond;
-                    Log.OptoValueArduino(Trial) = NaN;
-                    Log.OptoValue(Trial) = Par.Laserpower;
-                end
-                % Additionally Visual and/or Auditory
-                if Log.Contrast(Trial) > 0 && Log.AudIntensity(Trial) == 0 % Opto Plus Visual
-                    Log.TrialCond(Trial) = Log.TrialCond(Trial)+10;
-                elseif Log.Contrast(Trial) == 0 && Log.AudIntensity(Trial) > 0 % Opto Plus Auditory
-                    Log.TrialCond(Trial) = Log.TrialCond(Trial)+20;
-                elseif Log.Contrast(Trial) > 0 && Log.AudIntensity(Trial) > 0 % Opto Plus Visual Plus Auditory
-                    Log.TrialCond(Trial) = Log.TrialCond(Trial)+30;
-                end
-            elseif Log.Contrast(Trial) > 0 && Log.AudIntensity(Trial) == 0 % Visual Only
-                Log.TrialCond(Trial) = 10;
-                Log.OptoValueArduino(Trial) = NaN;
-                Log.OptoValue(Trial) = NaN;
-            elseif Log.Contrast(Trial) == 0 && Log.AudIntensity(Trial) > 0 % Auditory Only
-                Log.TrialCond(Trial) = 20;
-                Log.OptoValueArduino(Trial) = NaN;
-                Log.OptoValue(Trial) = NaN;
-            elseif Log.Contrast(Trial) > 0 && Log.AudIntensity(Trial) > 0 % Visual Plus Auditory
-                Log.TrialCond(Trial) = 30;
-                Log.OptoValueArduino(Trial) = NaN;
-                Log.OptoValue(Trial) = NaN;
-            end
-        else % No Go Stimulus
-            Log.TrialCond(Trial) = 1;
-            Log.OptoValueArduino(Trial) = NaN;
-            Log.OptoValue(Trial) = NaN;
-        end
-        
-        %% If using modulated Arduino set the Laser Power to the correct Power for this trial
-        
-        if Par.ModulatedArduino == 1 && Log.Trialtype(Trial) == 1
-            
-            % change the setting to new power
-            message = ['C' num2str(Log.OptoValueArduino(Trial))];
-            fprintf(Par.Optoserial, message);
-            pause(0.1)
-            if Par.Optoserial.Bytesavailable
-                resp = fscanf(Par.Optoserial, '%s');
-            end
-            
-            % ask Laserpower Arduino which value it is set to
-            message = 'P';
-            fprintf(Par.Optoserial, 'P');             % ask for current power
-            pause(0.1)
-            if Par.Optoserial.BytesAvailable
-                Log.OptoValueReceived(Trial) = str2double(fscanf(Par.Optoserial, '%s'));
-            end
-        else
-            Log.OptoValueReceived(Trial) = NaN;
-        end
-        
-        %% ITI and Cleanbaseline (fixedITI is at end of trial!)
+        %% ITI and Cleanbaseline 
         
         Log.randITI(Trial) = Par.random_ITI * rand;
         Log.ITI(Trial) = Par.ITI;
-        % read out min and max Cleanbaseline
+
+        % pause for the fixed ITI minus the time that has passed during stimulus making
+        fixedITITimer = tic;
+        checkedOnce = 0;
+        while toc(fixedITITimer) < (Log.ITI(Trial)-subtract_Timer) || ~checkedOnce
+            checkforLicks
+            checkRunning
+            checkedOnce = 1;
+        end
+        clear fixedITITimer
+        
+        % Cleanbaseline
         CleanBaselineMin = str2double(get(Gui.CleanBaselineMin, 'string'));
         CleanBaselineMax = str2double(get(Gui.CleanBaselineMax, 'string'));
         Log.CleanBaseline(Trial) = CleanBaselineMin + rand(1) * (CleanBaselineMax - CleanBaselineMin);
-        
-        % first initialize camera if experiment is in the WF setup
-        if strcmp(Log.Setup, 'WFsetup')
-            dasbit(Par.Camport, 1) % initializes camera
-        end
-        
-        % Cleanbaseline
-        if Log.CleanBaseline(Trial)
+        if Log.CleanBaseline(Trial) % Pause for Cleanbaselinetime until the mouse stops licking
             tempLickVec = LickVec;
             cleanBaseTimer = tic;
-            while toc(cleanBaseTimer) < Log.CleanBaseline(Trial)            % Pause for Cleanbaselinetime until the mouse stops licking
+            while toc(cleanBaseTimer) < Log.CleanBaseline(Trial)            
                 checkforLicks
                 checkRunning
                 if ~isequal(LickVec, tempLickVec)
@@ -512,11 +315,19 @@ try
         end
         clear cleanBaseTimer
         
-        % Random ITI minus baseline imaging time
+        
+        % initialize camera if experiment is in the WF setup
+        if strcmp(Log.Setup, 'WFsetup')
+            dasbit(Par.Camport, 1) % initializes camera
+        end
+        
+        % Random ITI minus once the CleanBaseline Time
+        checkedOnce = 0;
         randITITimer = tic;
-        while toc(randITITimer) <  Log.randITI(Trial) - Log.CleanBaseline(Trial) % pause the random ITI time without the cleanbaseline time and the PreImageTime
+        while toc(randITITimer) <  (Log.randITI(Trial) - Log.CleanBaseline(Trial)) || ~checkedOnce 
             checkforLicks
             checkRunning
+            checkedOnce = 1;
         end
         clear randITITimer
         
@@ -527,7 +338,7 @@ try
         end
         
         
-        %% Visual / Auditory / Optogenetic Stimulation
+        %% Display the Visual Go or NoGo Stimulus
 
         checkforLicks
         
@@ -535,59 +346,45 @@ try
         fprintf(Par.sport, 'IS');   % starts the trial
         RunningDiff = toc(RunningTimer);
         
+        % Show the Visual Stimulus
+        cgdrawsprite(1,0,0)
+        VisStatus = 1;
+        cgflip('V')
+        cgflip(Par.grey)
+        cgflip('V')
+        
+        % Stimulus is there
+        if strcmp(Log.Setup, 'WFsetup')
+            dasbit(Par.Stimbitport, 1)  % sends a stimbit that stimulus is present
+        end
+        StimOnset = tic;
+        
+        % Colour the GUI field in the appropriate colour
         if Log.Trialtype(Trial) == 1
             set(Gui.Currtrial,'Background',[0 1 0])
         else
             set(Gui.Currtrial,'Background',[1 1 0])
         end
         
-        % If this is a Go Trial show the Visual Stimulus (if don't want one set contrast to 0)
-        if Log.Contrast(Trial) && Log.Trialtype(Trial) == 1
-            cgdrawsprite(1,0,0)
-            cgdrawsprite(2,0,0)
-            VisStatus = 1;
-            cgflip('V')
-            cgflip(Par.grey)
-            cgflip('V')
-        else
-            VisStatus = 0;
-        end
-        
-        % Play Auditory tone if wanted and this is a Go Trial
-        if Log.AudIntensity(Trial) && Log.Trialtype(Trial) == 1
-            cgsound('play', 1)
-        end
-        
-        % Start Optogenetic Stimulation if wanted and this is a Go Trial
-        if Log.OptoStim(Trial) && Log.Trialtype(Trial) == 1
-            dasbit(Par.Optoport,1);   % turns on Laser
-            Optostatus = 1;
-            fprintf('Opto Trial: Laser Power %gmW Trial Cond %g \n', Log.OptoValue(Trial), Log.TrialCond(Trial))
-        else
-            Optostatus = 0;
-        end
-        
-        % Stimulus is there (either Visual, Auditory, Opto or Combination)
-        if strcmp(Log.Setup, 'WFsetup')
-            dasbit(Par.Stimbitport, 1)  % sends a stimbit that stimulus is present
-        end
-        StimOnset = tic;
-        
-        % Enable the Lick spout for this trial
-        if Log.Trialtype(Trial) == 1    % Go Trial
-            fprintf(Par.sport, 'IE 1');
-        else                            % No Go Trial
-            fprintf(Par.sport, 'IE 2');
-        end
-        LickEnabled = 1;
-        
-        
-        while toc(StimOnset) < max([Log.TimeToLick(Trial) Par.OptoDuration Par.VisDuration Par.AudDuration])
+        EnableGrace = 1;
+        LickEnabled = 0;
+
+        while toc(StimOnset) < max([Log.TimeToLick(Trial) Log.VisDuration(Trial)])
 
             checkforLicks
             checkRunning
-
             
+            % Enable the Lick spout for this trial
+            if toc(StimOnset) > Log.GraceDuration && EnableGrace
+                if Log.Trialtype(Trial) == 1    % Go Trial
+                    fprintf(Par.sport, 'IE 1');
+                else                            % No Go Trial
+                    fprintf(Par.sport, 'IE 2');
+                end
+                EnableGrace = 0;
+                LickEnabled = 1;
+            end
+
             % check if should give a passive
             if Log.Passives(Trial) && toc(StimOnset) > Log.Passivedelay(Trial) && ~gavepassive
                 sendtoard(Par.sport, 'IP')          % give passive
@@ -601,29 +398,16 @@ try
                 LickEnabled = 0;
             end
 
-            % check if should turn off opto
-            if toc(StimOnset) > Par.OptoDuration && Optostatus == 1
-                dasbit(Par.Optoport,0);   % turns off Laser
-                Optostatus = 0;
-                if strcmp(Log.Setup, 'WFsetup')
-                    dasbit(Par.Stimbitport, 0)  % sets stimbit to 0 to mark that stimulus is gone
-                end
-            end
             
             % check if should turn off visual stimulus
-            if toc(StimOnset) > Par.VisDuration && VisStatus == 1
+            if toc(StimOnset) > Log.VisDuration(Trial) && VisStatus == 1
                 cgflip(Par.grey)
                 VisStatus = 0;
                 if strcmp(Log.Setup, 'WFsetup')
                     dasbit(Par.Stimbitport, 0)  % sets stimbit to 0 to mark that stimulus is gone
                 end
             end
-            
-            % check if should turn off stimbit because auditory tone is off
-            if toc(StimOnset) > Par.AudDuration && Log.AudIntensity(Trial) && Log.Trialtype(Trial) == 1 && strcmp(Log.Setup, 'WFsetup')
-                dasbit(Par.Stimbitport, 0)  % sets stimbit to 0 to mark that stimulus is gone
-            end
-            
+
         end
         
         set(Gui.Currtrial,'Background',[.95 .95 .95])
@@ -638,9 +422,6 @@ try
         if VisStatus == 1 || LickEnabled == 1
             cgflip(Par.grey)                % flips up a grey screen         
             sendtoard(Par.sport, 'ID');     % disable the lick reward
-        end
-        if Optostatus == 1
-            dasbit(Par.Optoport,0);         % turns off Laser again, just in case
         end
         
         % Stop recording and turn camera off if this is in the WF setup
@@ -665,15 +446,7 @@ try
             end
         end
         trialtime = str2num(fscanf(Par.sport, '%s')); %#ok<ST2NM>
-        
-        % pause for the fixed ITI
-        fixedITITimer = tic;
-        while toc(fixedITITimer)< Log.ITI(Trial)
-            checkforLicks
-            checkRunning
-        end
-        clear fixedITITimer
-        
+
         % save the Lick Data in the Log file
         try
             Log.LickVec{Trial} = LickVec - trialtime;
@@ -685,17 +458,6 @@ try
         % save the Running Data in the Log file
         Log.RunningVec{Trial} = RunningVec;
         Log.RunningTiming{Trial} = RunningTiming - RunningDiff;
-        
-        % read out and save the onset of the Blinking Mask in the Log file
-        if Par.RecordBlinkMask
-            while Par.mask_port.BytesAvailable
-                BlinkTime = fread(Par.mask_port, 1, 'int32')/1000 - RunningDiff;
-                BlinkVec = [BlinkVec BlinkTime]; %#ok<AGROW>
-            end
-        else
-            BlinkVec = NaN;
-        end
-        Log.BlinkVec{Trial} = BlinkVec;
         
         
         %% Process response
@@ -715,7 +477,12 @@ try
             Log.RT(Trial) = str2double(RT);
             cprintf([1 0 0], 'False Alarm \n')
             % and give the timeout punishment for FA
-            pause(Par.FA_Timeout)
+            FATimer = tic;
+            while toc(FATimer) < Par.FA_Timeout
+                checkforLicks
+                checkRunning
+            end
+            clear FATimer
         else
             if Log.Trialtype(Trial) == 1
                 Log.Reaction{Trial} = 'Miss';
@@ -842,45 +609,6 @@ end
 if Par.RecordBlinkMask
     fclose(Par.mask_port);
 end
-
-%% TrialCond Explanation
-
-% 1     No Go
-% 
-% 2     0.1mW Opto
-% 3     0.5mW Opto
-% 4     1.0mW Opto
-% 5     5.0mW Opto
-% 6     10mW Opto
-% 7     other mW Opto
-% 
-% 10    Vis Stim Only
-% 
-% 12    0.1mW Opto + VisStim
-% 13    0.5mW Opto + VisStim
-% 14    1.0mW Opto + VisStim
-% 15    5.0mW Opto + VisStim
-% 16    10mW Opto + VisStim
-% 17    other mW Opto + VisStim
-% 
-% 20    Tone Only
-% 
-% 22    0.1mW Opto + Tone
-% 23    0.5mW Opto + Tone
-% 24    1.0mW Opto + Tone
-% 25    5.0mW Opto + Tone
-% 26    10mW Opto + Tone
-% 27    other mW Opto + Tone
-% 
-% 30    Vis + Tone
-% 
-% 32    0.1mW Opto + Vis + Tone
-% 33    0.5mW Opto + Vis + Tone
-% 34    1.0mW Opto + Vis + Tone
-% 35    5.0mW Opto + Vis + Tone
-% 36    10mW Opto + Vis + Tone
-% 37    other mW Opto + Vis + Tone
-
 
 
 
