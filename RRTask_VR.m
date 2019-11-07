@@ -23,6 +23,7 @@ try
     answer = inputdlg(prompt,'Please enter parameters',1,def);
     
     Log.Task = 'RRTask';
+    Log.TaskCondition = 'VR';
     Log.Mouse = answer{1};
     run checkMouse
     
@@ -232,11 +233,11 @@ try
             end
             
         else %Testphase
-                % There are 4 test stimuli (for now) which are:
-                % 1 Go      Figure grating, Background grey
-                % 2 Go      Figure grey, Background grating
-                % 3 NoGo    Figure grating, Background grey
-                % 4 NoGo    Figure grey, Background grating
+            % There are 4 test stimuli (for now) which are:
+            % 1 Go      Figure grating, Background grey
+            % 2 Go      Figure grey, Background grating
+            % 3 NoGo    Figure grating, Background grey
+            % 4 NoGo    Figure grey, Background grating
             Log.TestStim(Trial) = TestMatrix(1);
             TestMatrix(1) = [];
             if Log.TestStim(Trial) <= 2
@@ -320,15 +321,10 @@ try
                 Log.TestStim(Trial) = NaN;
 
             case 3    % Test Stimuli
-                
-         % There are 4 test stimuli (for now) which are:
-                % 1 Go      Figure grating, Background grey
-                % 2 Go      Figure grey, Background grating
-                % 3 NoGo    Figure grating, Background grey
-                % 4 NoGo    Figure grey, Background grating
+
                 switch Log.TestStim(Trial)
                     case 1
-                        % Figure with grating
+                        % Figure with GO grating
                         Log.FgOri(Trial) = Par.GoFigOrient;
                         Log.FgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
                         FGcogentGrating = makeFullScreenGrating(Log.FgOri(Trial),Log.FgPhase(Trial),0,gammaconversion); % 1 with circle, 0 without
@@ -341,9 +337,9 @@ try
                         
                     case 2
                         % Grey Figure
-                        Log.FgColor(Trial) = Par.grey(1);
+                        Log.FgColor(Trial) = Par.greylum;
                         FGcogentGrating = makeUniformFullScreen(Log.FgColor(Trial),0,gammaconversion); % 1 with circle, 0 without
-                        % Background with grating
+                        % Background with GO grating
                         Log.BgOri(Trial) = Par.GoBgOrient;
                         Log.BgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
                         BGcogentGrating = makeFullScreenGrating(Log.BgOri(Trial),Log.BgPhase(Trial),1,gammaconversion); % 1 with circle, 0 without                        
@@ -352,16 +348,31 @@ try
                         Log.BgColor(Trial) = NaN;
                         
                     case 3
+                        % Figure with NOGO grating
+                        Log.FgOri(Trial) = Par.NoGoFigOrient;
+                        Log.FgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
+                        FGcogentGrating = makeFullScreenGrating(Log.FgOri(Trial),Log.FgPhase(Trial),0,gammaconversion); % 1 with circle, 0 without
+                        % Grey Background
+                        Log.BgColor(Trial) = Par.greylum;
+                        BGcogentGrating = makeUniformFullScreen(Log.BgColor(Trial),1,gammaconversion); % 1 with circle, 0 without
+                        Log.BgPhase(Trial) = NaN;
+                        Log.BgOri(Trial) = NaN;
+                        Log.FgColor(Trial) = NaN;
+                        
                     case 4
+                        % Grey Figure
+                        Log.FgColor(Trial) = Par.greylum;
+                        FGcogentGrating = makeUniformFullScreen(Log.FgColor(Trial),0,gammaconversion); % 1 with circle, 0 without
+                        % Background with NOGO grating
+                        Log.BgOri(Trial) = Par.NoGoBgOrient;
+                        Log.BgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
+                        BGcogentGrating = makeFullScreenGrating(Log.BgOri(Trial),Log.BgPhase(Trial),1,gammaconversion); % 1 with circle, 0 without                        
+                        Log.FgPhase(Trial) = NaN;
+                        Log.FgOri(Trial) = NaN;
+                        Log.BgColor(Trial) = NaN;
+                        
                 end
-                if Log.Trialtype(Trial) == 1
-                    Log.TestStim(Trial) = randi(;
-                    Log.FgOri(Trial) = Par.GoFigOrient;
-                    Log.BgOri(Trial) = Par.GoBgOrient;
-                else
-                    Log.FgOri(Trial) = Par.NoGoFigOrient;
-                    Log.BgOri(Trial) = Par.NoGoBgOrient;
-                end
+                
                 
         end
         
@@ -374,13 +385,7 @@ try
         cgdrawsprite(11,0,0)
         cgdrawsprite(12,0,0)
         cgsetsprite(0)
-        
-        % Show the Visual Stimulus
-        cgdrawsprite(1,0,0)
-        VisStatus = 1;
-        cgflip('V')
-        cgflip(Par.grey)
-        cgflip('V')
+
 
         
         %% look at how long initialization took and subtract from ITI
