@@ -6,12 +6,12 @@ catch
 end
 
 % Rewardtime
-uicontrol('Style', 'text', 'Position', [10 0 60 20], 'String', 'Reward');
-Gui.RewardDur = uicontrol('Style', 'edit' , 'Position', [75 0 40 20], 'String', '200');
+uicontrol('Style', 'text', 'Position', [10 0 60 15], 'String', 'Reward');
+Gui.RewardDur = uicontrol('Style', 'edit' , 'Position', [75 0 40 15], 'String', '200');
 
 % Lick Detection Threshold
-Gui.LickValue = uicontrol('Style', 'text', 'Position', [10 20 60 20], 'String', '0');
-Gui.Threshold = uicontrol('Style', 'edit' , 'Position', [75 20 60 20], 'String', '8000', 'Callback', 'sendardwm(sport, [''IF '' get(Gui.threshold, ''string'')])');
+Gui.LickValue = uicontrol('Style', 'text', 'Position', [10 20 60 15], 'String', '0');
+Gui.Threshold = uicontrol('Style', 'edit' , 'Position', [75 20 60 15], 'String', '8000', 'Callback', 'sendardwm(sport, [''IF '' get(Gui.threshold, ''string'')])');
 
 % Responses
 % Hit
@@ -29,55 +29,58 @@ Gui.CRtext = uicontrol('Style', 'text', 'Position', [280 10 40 30], 'String', '0
 
 
 % GoTrialProportion
-uicontrol('Style','text','Position',[10 165 90 20],'String','GoTrialProportion');
-Gui.GoTrialProportion = uicontrol('Style', 'edit' , 'Position', [100 165 40 20], 'String', '50');
+uicontrol('Style','text','Position',[10 165 90 15],'String','GoTrialProportion');
+Gui.GoTrialProportion = uicontrol('Style', 'edit' , 'Position', [100 165 40 15], 'String', '50');
 
 % Visual Stimulus Duration
-uicontrol('Style','text','Position',[10 135 90 20],'String','VisDuration');
-Gui.VisDuration = uicontrol('Style', 'edit' , 'Position', [100 135 40 20], 'String', '1');
+uicontrol('Style','text','Position',[10 135 90 15],'String','VisDuration');
+Gui.VisDuration = uicontrol('Style', 'edit' , 'Position', [100 135 40 15], 'String', '1');
 
 % Grace Period
-uicontrol('Style','text','Position',[10 105 90 20],'String','GraceDuration');
-Gui.GraceDuration = uicontrol('Style', 'edit' , 'Position', [100 105 40 20], 'String', '0.2');
+uicontrol('Style','text','Position',[10 105 90 15],'String','GraceDuration');
+Gui.GraceDuration = uicontrol('Style', 'edit' , 'Position', [100 105 40 15], 'String', '0.2');
 
 % TimeToLick
-uicontrol('Style','text','Position',[10 75 90 20],'String','TimeToLick');
-Gui.TimeToLick = uicontrol('Style', 'edit' , 'Position', [100 75 40 20], 'String', '1');
+uicontrol('Style','text','Position',[10 75 90 15],'String','TimeToLick');
+Gui.TimeToLick = uicontrol('Style', 'edit' , 'Position', [100 75 40 15], 'String', '1');
 
+% Task Phase
+uicontrol('Style','text','Position',[10 75 90 15],'String','TaskPhase');
+Gui.TaskPhase = uicontrol('Style', 'edit' , 'Position', [100 75 40 15], 'String', '1');
 
 % Currtrial
-uicontrol('Style','text','Position',[10 210 50 20],'String','Currtrial');
-Gui.Currtrial= uicontrol('Style','text','Position',[60 210 70 20],'String','Default');
+uicontrol('Style','text','Position',[10 210 50 15],'String','Currtrial');
+Gui.Currtrial= uicontrol('Style','text','Position',[60 210 70 15],'String','Default');
 
 % Nexttrial
-uicontrol('Style','text','Position',[10 190 50 20],'String','Nexttrial');
-Gui.Nexttrial= uicontrol('Style','text','Position',[60 190 70 20],'String','Default');
+uicontrol('Style','text','Position',[10 190 50 15],'String','Nexttrial');
+Gui.Nexttrial= uicontrol('Style','text','Position',[60 190 70 15],'String','Default');
 
 % Change Next Trial
 NextGo = uicontrol('Style','pushbutton','Position',[150 195 75 30],'String','Next Go', 'Callback', {@changenexttrial,Gui.Nexttrial,1});
 NextNoGo = uicontrol('Style','pushbutton','Position',[240 195 75 30],'String','Next No Go','Callback',{@changenexttrial,Gui.Nexttrial,2});
 
 % Licks
-uicontrol('Style','text','Position',[10 230 50 20],'String','Licks');
-Gui.Lickbox = uicontrol('Style','text','Position',[80 230 20 20],'String','x');
+uicontrol('Style','text','Position',[10 230 50 15],'String','Licks');
+Gui.Lickbox = uicontrol('Style','text','Position',[80 230 20 15],'String','x');
 
 % Stopbutton
-Gui.StopButton = uicontrol('Style','pushbutton','Position',[240 235 75 20],'String','Stop','Callback',@stopfunction);
+Gui.StopButton = uicontrol('Style','pushbutton','Position',[240 235 75 15],'String','Stop','Callback',@stopfunction);
 
 % Startbutton
-Gui.StartButton = uicontrol('Style','pushbutton','Position',[150 235 75 20],'String','Start','Callback',@startfunction);
+Gui.StartButton = uicontrol('Style','pushbutton','Position',[150 235 75 15],'String','Start','Callback',@startfunction);
 
 % CleanBaseLine
-uicontrol('Style','text','Position',[150 87 90 20],'String','CleanBaseline');
-Gui.CleanBaselineMin = uicontrol('Style', 'edit' , 'Position', [240 90 30 20], 'String', '0');
-Gui.CleanBaselineMax = uicontrol('Style', 'edit' , 'Position', [280 90 30 20], 'String', '2');
+uicontrol('Style','text','Position',[150 87 90 15],'String','CleanBaseline');
+Gui.CleanBaselineMin = uicontrol('Style', 'edit' , 'Position', [240 90 30 15], 'String', '0');
+Gui.CleanBaselineMax = uicontrol('Style', 'edit' , 'Position', [280 90 30 15], 'String', '2');
 
 
 % Passives
-uicontrol('Style','text','Position',[185 137 90 20],'String','Passive Perc');
-Gui.PassPerc = uicontrol('Style', 'edit' , 'Position', [270 140 40 20], 'String', '0');
-uicontrol('Style','text','Position',[185 117 90 20],'String','Passive Delay');
-Gui.Passivedelay = uicontrol('Style', 'edit' , 'Position', [270 120 40 20], 'String', '0.5');
+uicontrol('Style','text','Position',[185 137 90 15],'String','Passive Perc');
+Gui.PassPerc = uicontrol('Style', 'edit' , 'Position', [270 140 40 15], 'String', '0');
+uicontrol('Style','text','Position',[185 117 90 15],'String','Passive Delay');
+Gui.Passivedelay = uicontrol('Style', 'edit' , 'Position', [270 120 40 15], 'String', '0.5');
 
 
 

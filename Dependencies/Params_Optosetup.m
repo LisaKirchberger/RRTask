@@ -31,8 +31,7 @@ Par.PixPerDeg = (Par.Screenx/2)/atand((0.5*Par.ScreenWidth)/Par.ScreenDistance);
 Par.DegPerPix = 1/Par.PixPerDeg;
 Par.RadPerPix = Par.DegPerPix*pi/180;
 
-Par.FigX = 30;
-Par.FigY = 20;
+
 Par.FigSize = 35;
 Par.SpatialFreq = 0.08;
 Par.Period = round(Par.PixPerDeg./Par.SpatialFreq);
