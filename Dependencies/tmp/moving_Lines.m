@@ -1,10 +1,12 @@
 function moving_Lines
 
 % Globals
-global	Num MinRad
+global	Num MinRad BGCol HorizonCol
 % Initialize some globals
 Num = 20;
 MinRad = 10;
+BGCol = [0 0 0];
+HorizonCol = [0.5 0.5 0.5];
 
 % Initialize cogent
 cgloadlib
@@ -65,7 +67,7 @@ return
 function moveLines
 
 % Globals
-global Num x y Rad Spd k1 k2 Dir
+global Num x y Rad Spd k1 k2 Dir BGCol HorizonCol
 
 % Set pen colour 1 (white)
 cgpencol(1,1,1)
@@ -81,17 +83,27 @@ while ~kd(1)
     
     kd = cgkeymap;
     
-    % Set the offscreen area black
-    cgflip(0,0,0);
+    % Flip up a Screen in BGCol
+    cgflip(BGCol);
     
     % Set the object colours according to distance from centre
     Col(:,3) = Rad'/400;
     Col(:,2) = 1-(Rad'/400);
 
     % lines - draw a line segment
-    cgdraw(x-y,y,x+y,y,Col)
-    %cgrect(x-y,y,x+y,y,Col)
-    %cgrect(0,150,800,320)
+    % this works: 
+    %cgdraw(x-y,y,x+y,y,Col)
+    
+    % or this:
+    cgalign('l','c')
+    cgrect(x,y,x+y,y/11,Col)
+    cgalign('r','c')
+    cgrect(x,y,x-y,y/11,Col)
+
+    % Draw a Horizon
+    cgalign('r','c')
+    cgrect(400,150,800,320, HorizonCol)
+
     
     % Update the positions
     x = x.*Spd;
