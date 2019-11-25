@@ -247,29 +247,7 @@ clc
         end
         
         
-        if Log.Trialtype(Trial) == 1
-                set(Gui.Currtrial, 'String', 'Go')
-                Log.Trialword{Trial} = 'Go';
-            else
-                set(Gui.Currtrial, 'String', 'No Go')
-                Log.Trialword{Trial} = 'No Go';
-            end
-        %% Passive Rewards
-        
-        Log.PassPerc(Trial) = str2double(get(Gui.PassPerc, 'string'));
-        Pick = rand;
-        if Pick < Log.PassPerc(Trial)/100
-            Log.Passives(Trial) = 1;
-        else
-            Log.Passives(Trial) = 0;
-        end
-        
-        if Log.Passives(Trial) == 1 && Log.Trialtype(Trial) == 1
-            gavepassive = 0;
-        else
-            gavepassive = 1;
-        end
-        
+            
         
         %% check for communication from the serial port
 
@@ -385,7 +363,34 @@ clc
         cgdrawsprite(12,0,0)
         cgsetsprite(0)
 
+        
+        %% set the Trialtype in the Gui 
+        
+        if Log.Trialtype(Trial) == 1
+                set(Gui.Currtrial, 'String', 'Go')
+                Log.Trialword{Trial} = 'Go';
+            else
+                set(Gui.Currtrial, 'String', 'No Go')
+                Log.Trialword{Trial} = 'No Go';
+        end
+        
 
+        %% Passive Rewards
+        
+        Log.PassPerc(Trial) = str2double(get(Gui.PassPerc, 'string'));
+        Pick = rand;
+        if Pick < Log.PassPerc(Trial)/100
+            Log.Passives(Trial) = 1;
+        else
+            Log.Passives(Trial) = 0;
+        end
+        
+        if Log.Passives(Trial) == 1 && Log.Trialtype(Trial) == 1
+            gavepassive = 0;
+        else
+            gavepassive = 1;
+        end
+        
         
         %% look at how long initialization took and subtract from ITI
         subtract_Timer = toc(InitializeTimer); clear InitializeTimer
