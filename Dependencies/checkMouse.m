@@ -33,7 +33,7 @@ switch Log.Mouse
         Par.NoGoFigOrient = 45;
         Par.NoGoBgOrient = 135;
         Par.FigX = 30;
-        Par.FigY = 20;
+        Par.FigY = 0;
         
     case 'Ariel'
         Par.GoFigOrient = 0;
@@ -41,7 +41,7 @@ switch Log.Mouse
         Par.NoGoFigOrient = 45;
         Par.NoGoBgOrient = 135;
         Par.FigX = 30;
-        Par.FigY = 20;
+        Par.FigY = 0;
         
     case 'Bambi'
         Par.GoFigOrient = 45;
@@ -49,7 +49,7 @@ switch Log.Mouse
         Par.NoGoFigOrient = 0;
         Par.NoGoBgOrient = 90;
         Par.FigX = 0;
-        Par.FigY = 20;
+        Par.FigY = 0;
         
     case 'Cruella'
         Par.GoFigOrient = 90;
@@ -57,7 +57,7 @@ switch Log.Mouse
         Par.NoGoFigOrient = 135;
         Par.NoGoBgOrient = 45;
         Par.FigX = -30;
-        Par.FigY = 20;
+        Par.FigY = 0;
         
 end
 

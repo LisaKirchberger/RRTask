@@ -2,7 +2,7 @@
 clear all %#ok<CLALL>
 clc
 
-try
+%try
     %% Structure of this task:
     % Mouse is head fixed and sits in a tube setup or runs (running is not relevant for task) on a treadmill
     % On Go Trials the mouse is presented with a figure ground stimulus with certain orientations for figure and ground (needs to be set for
@@ -297,7 +297,7 @@ try
                 Log.FgPhase(Trial) = NaN;
                 Log.BgPhase(Trial) = NaN;
                 Log.BgOri(Trial) = NaN;
-                Log.FGOri(Trial) = NaN;
+                Log.FgOri(Trial) = NaN;
                 Log.TestStim(Trial) = NaN;
 
 
@@ -484,7 +484,7 @@ try
             checkRunning
             
             % Enable the Lick spout for this trial
-            if toc(StimOnset) > Log.GraceDuration && EnableGrace
+            if toc(StimOnset) > Log.GraceDuration(Trial) && EnableGrace
                 if Log.Trialtype(Trial) == 1    % Go Trial
                     fprintf(Par.sport, 'IE 1');
                 else                            % No Go Trial
@@ -695,11 +695,11 @@ try
         save([Par.Save_Location2 '\' Log.Mouse Log.Expnum] , 'Log', 'Par', 'Log_table', 'RunningTimecourseAVG')
     end
     
-catch ME
+%catch ME
     
-    disp(ME)
+%    disp(ME)
     
-end
+%end
 
 
 
@@ -709,14 +709,8 @@ cgshut
 if strcmp(get(Par.sport, 'status'), 'open')
     fclose(Par.sport);
 end
-if Par.ModulatedArduino
-    fclose(Par.Optoserial);
-end
 if Par.RecordRunning
     fclose(Par.running_port);
-end
-if Par.RecordBlinkMask
-    fclose(Par.mask_port);
 end
 
 

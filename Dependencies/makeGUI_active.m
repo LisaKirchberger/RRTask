@@ -40,9 +40,6 @@ Gui.VisDuration = uicontrol('Style', 'edit' , 'Position', [100 135 40 15], 'Stri
 uicontrol('Style','text','Position',[10 105 90 15],'String','GraceDuration');
 Gui.GraceDuration = uicontrol('Style', 'edit' , 'Position', [100 105 40 15], 'String', '0.2');
 
-% TimeToLick
-uicontrol('Style','text','Position',[10 75 90 15],'String','TimeToLick');
-Gui.TimeToLick = uicontrol('Style', 'edit' , 'Position', [100 75 40 15], 'String', '1');
 
 % Task Phase
 uicontrol('Style','text','Position',[10 75 90 15],'String','TaskPhase');
@@ -77,12 +74,15 @@ Gui.CleanBaselineMax = uicontrol('Style', 'edit' , 'Position', [280 90 30 15], '
 
 
 % Passives
-uicontrol('Style','text','Position',[185 137 90 15],'String','Passive Perc');
+uicontrol('Style','text','Position',[185 140 90 15],'String','Passive Perc');
 Gui.PassPerc = uicontrol('Style', 'edit' , 'Position', [270 140 40 15], 'String', '0');
-uicontrol('Style','text','Position',[185 117 90 15],'String','Passive Delay');
+uicontrol('Style','text','Position',[185 120 90 15],'String','Passive Delay');
 Gui.Passivedelay = uicontrol('Style', 'edit' , 'Position', [270 120 40 15], 'String', '0.5');
 
 
+% TimeToLick
+uicontrol('Style','text','Position',[185 160 90 15],'String','TimeToLick');
+Gui.TimeToLick = uicontrol('Style', 'edit' , 'Position', [270 160 40 15], 'String', '1');
 
 % performance plot
 perfplot = subplot(2,1,1);
