@@ -12,6 +12,12 @@ if Par.RecordRunning == 1
             RunningVec = [RunningVec Speed]; %#ok<AGROW>
             RunningTiming = [RunningTiming toc(RunningTimer)]; %#ok<AGROW>
             stored_Speed = 1;
+            % want to cap the speed and not go backwards
+            if Speed > Par.maxSpeed
+                Speed = Par.maxSpeed;
+            elseif Speed < 0
+                Speed = 0;
+            end
         end
     end
     clear timeout

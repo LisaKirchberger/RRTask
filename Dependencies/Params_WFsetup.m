@@ -8,6 +8,8 @@ Par.running_port = serial('com10');
 Par.ITI = 6;                        % in seconds
 Par.FA_Timeout = 5;                 % in seconds
 Par.random_ITI = 2;                 % in seconds
+Par.maxSpeed = 5;
+Par.DistanceThres = 1;
 
 % Setup Parameters
 gammaconversion = 'gammaconWF';
@@ -54,6 +56,7 @@ Par.Optoport = 4;
 % other imaging parameters
 Par.Exposure = str2double(Log.Exposure);
 Par.PreStimTime = 0.5;      % in seconds
+Par.PostStimTime = 0.2;
 
 % Audio
 Par.Aud_nchannels = 1;                  % number of channels, 1=mono, 2=stereo;

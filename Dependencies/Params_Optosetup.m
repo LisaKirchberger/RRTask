@@ -8,6 +8,8 @@ Par.running_port = serial('com12');
 Par.ITI = 4;                        % in seconds
 Par.FA_Timeout = 5;                 % in seconds
 Par.random_ITI = 2;                 % in seconds
+Par.maxSpeed = 5;
+Par.DistanceThres = 1;
 
 % Setup Parameters
 gammaconversion = 'gammaconOpto';
