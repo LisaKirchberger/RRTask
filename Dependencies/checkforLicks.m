@@ -1,3 +1,8 @@
+% checkforLicks
+
+% this is bit confusing but this script should be used with the LickSensor
+% Arduino script
+
 I = '';
 attempts = 0;
 Lick = 0;

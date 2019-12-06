@@ -5,15 +5,19 @@ clc
 try
     %% Structure of this task:
     % Mouse is head fixed and runs on a treadmill
-    % to get to the next trial the mouse has to run a certain distance on
-    % the treadmill
+    % to get to the next trial the mouse has to run a certain distance on the treadmill
     % On Go Trials the mouse is presented with a figure ground stimulus with certain orientations for figure and ground (needs to be set for
     % each mouse in MouseParams before start of training. If the mouse licks it gets a reward
-    % On NoGo Trials a figure-ground stimulus with different orientation appears that is not rewarded, if the mice lick on No-Go trials a grey
+    % On NoGo Trials a figure-ground stimulus with different orientation(s) appears that is not rewarded, if the mice lick on No-Go trials a white
     % screen will appear and only disappears after a certain running distance
     
     % need Arduino script: GoNoGoLick (!!!)
-           
+    correctArduino = questdlg('Did you upload the Arduino Script called GoNoGoLick?','Attention','Yes','No', 'Yes');
+    if strcmp(correctArduino, 'No')
+        disp('upload correct Arduino Script and then press any key on keyboard to continue')
+        pause
+    end
+    
     addpath(genpath(fullfile(pwd,'Dependencies')))
     addpath(genpath(fullfile(pwd,'Analysis')))
     
@@ -245,19 +249,56 @@ try
             end
             
         else 
-            %Testphase
-            % There are 4 test stimuli (for now) which are:
-            % 1 Go      Figure grating, Background grey
-            % 2 Go      Figure grey, Background grating
-            % 3 NoGo    Figure grating, Background grey
-            % 4 NoGo    Figure grey, Background grating
             Log.TestStim(Trial) = TestMatrix(1);
             TestMatrix(1) = [];
-            if Log.TestStim(Trial) <= 2
-                Log.Trialtype(Trial) = 1;
-            else
-                Log.Trialtype(Trial) = 0;
-            end
+        end
+        
+
+        
+        %% pick the correct sprites for the visual stimulus
+        
+        switch Log.TaskPhase(Trial)
+            
+            case 1      % Black/White Figure and Black/White Background
+                if Log.Trialtype(Trial) == 1
+                    Log.Fgsprite(Trial) = 3; % White Figure
+                    Log.Bgsprite(Trial) = 2; % Black Background
+                else
+                    Log.Fgsprite(Trial) = 1; % Black Figure
+                    Log.Bgsprite(Trial) = 4; % White Background
+                    Log.Trialtype(Trial) = 1;
+                end
+                Log.TestStim(Trial) = NaN;
+
+            case 2    % Go and NoGo Figure-Ground stimuli
+                if Log.Trialtype(Trial) == 1
+                    Log.Fgsprite(Trial) = 6+randi(4,1);      % GoFigOri in 1 of 4 Phases (7-10)
+                    Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
+                else
+                    Log.Fgsprite(Trial) = 14+randi(4,1);     % NoGoFigOri in 1 of 4 Phases (15-18)
+                    Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                end
+                Log.TestStim(Trial) = NaN;
+
+            case 3    % Test Stimuli
+                switch Log.TestStim(Trial)
+                    case 1
+                        Log.Fgsprite(Trial) = 6+randi(4,1);      % GoFigOri in 1 of 4 Phases (7-10)
+                        Log.Bgsprite(Trial) = 6;                 % Grey background
+                        Log.Trialtype(Trial) = 1;
+                    case 2
+                        Log.Fgsprite(Trial) = 5;                 % Grey Figure
+                        Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
+                        Log.Trialtype(Trial) = 1;
+                    case 3
+                        Log.Fgsprite(Trial) = 14+randi(4,1);     % NoGoFigOri in 1 of 4 Phases (15-18)
+                        Log.Bgsprite(Trial) = 6;                 % Grey background
+                        Log.Trialtype(Trial) = 0;
+                    case 4
+                        Log.Fgsprite(Trial) = 5;                 % Grey Figure
+                        Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                        Log.Trialtype(Trial) = 0;
+                end                           
         end
         
         if Log.Trialtype(Trial) == 1
@@ -267,12 +308,9 @@ try
             set(Gui.Currtrial, 'String', 'No Go')
             Log.Trialword{Trial} = 'No Go';
         end
-        
-        
+
         %% Passive Rewards
-        
-        Pick = rand;
-        if Pick < Log.PassPerc(Trial)/100
+        if rand < Log.PassPerc(Trial)/100
             Log.Passives(Trial) = 1;
         else
             Log.Passives(Trial) = 0;
@@ -299,13 +337,11 @@ try
         TotalSpriteCounter = 1;
         CurrSprite = SpriteOffset + 1;
         CurrDistance = 0;
-
-
+        
         while TotalSpriteCounter <= Log.VRDist(Trial)
             
             % at each refresh of the Screen read out the speed of the mouse
             % and determine the distance it ran in this time
-            
             cgflip('V')
 
             % Check the running speed
@@ -321,6 +357,7 @@ try
                 end
                 cgdrawsprite(CurrSprite,0,0)
                 cgflip(Par.grey)
+                CurrDistance = 0;
             end
             
             % Check the licks
@@ -344,15 +381,14 @@ try
         
         %% Display the Visual Go or NoGo Stimulus
 
-        
         % Send Start signal to Arduino and start the Trial
         fprintf(Par.sport, 'IS');   % starts the trial
         RunningDiff = toc(RunningTimer);
         
-        % Show the Visual Stimulus
-        cgdrawsprite(1,0,0)
+        % Show the Visual Stimulus   
+        cgdrawsprite(Log.Fgsprite(Trial),0,0)
+        cgdrawsprite(Log.Bgsprite(Trial),0,0)
         cgflip(Par.grey)
-        VisStatus = 1;
         
         % Stimulus is there
         if strcmp(Log.Setup, 'WFsetup')
@@ -369,13 +405,30 @@ try
         
         Enable = 1;
         LickEnabled = 0;
-
-        while toc(StimOnset) < max([Log.TimeToLick(Trial) Log.VisDuration(Trial)])
-
-            checkLicks
-            checkRunning
+        TotalSpriteCounter = 1;
+        CurrDistance = 0;
+        
+        % Mouse runs through Stimulus corridor 
+        while TotalSpriteCounter <= Log.VisStimDist(Trial) && ~strcmp(Reaction, 'F')
             
-            % check if should enable the Lick spout for this trial
+            % at each refresh of the Screen read out the speed of the mouse
+            % and determine the distance it ran in this time
+            cgflip('V')
+            
+            % Check the running speed
+            checkRunning
+            CurrDistance = CurrDistance + Speed.*1/Par.Refresh;
+            
+            % Check if crossed distance Threshold to next sprite
+            if CurrDistance > Par.DistanceThres
+                TotalSpriteCounter = TotalSpriteCounter + 1;
+                CurrDistance = 0;
+            end
+            
+            % Check the Licks/Response
+            checkLicks
+            
+            % Enable the Lick Spout (once)
             if toc(StimOnset) > Log.GraceDuration && Enable
                 if Log.Trialtype(Trial) == 1    % Go Trial
                     fprintf(Par.sport, 'IE 1');
@@ -385,47 +438,27 @@ try
                 Enable = 0;
                 LickEnabled = 1;
             end
-
-            % check if should give a passive
+            
+            % Give a passive if wanted (once)
             if Log.Passives(Trial) && toc(StimOnset) > Log.Passivedelay(Trial) && ~gavepassive
-                fprintf(Par.sport, 'IP')          % give passive
+                fprintf(Par.sport, 'IP');          % give passive
                 gavepassive = 1;
                 Enable = 0;
                 LickEnabled = 1;
                 cprintf([0.2 0.2 0.2], 'passive trial \n')
             end
             
-            % check if Time to Lick is over and should disable Lickspout
-            if toc(StimOnset) > Log.TimeToLick(Trial) && LickEnabled == 1
-                sendtoard(Par.sport, 'ID');
-                LickEnabled = 0;
-            end
-
-            % check if should turn off visual stimulus
-            if toc(StimOnset) > Log.VisDuration(Trial) && VisStatus == 1
-                cgflip(Par.grey)
-                VisStatus = 0;
-                if strcmp(Log.Setup, 'WFsetup')
-                    dasbit(Par.Stimbitport, 0)  % sets stimbit to 0 to mark that stimulus is gone
-                end
-            end
-
         end
         
-        set(Gui.Currtrial,'Background',[.95 .95 .95])
-        
-        % end of trial
+        % End of Trial
+        cgflip(Par.grey)
         Log.Stimdur(Trial) = toc(StimOnset);
+        sendtoard(Par.sport, 'ID');     % disable the lick reward
         if strcmp(Log.Setup, 'WFsetup')
-            dasbit(Par.Stimbitport, 0)      % sets stimbit to 0 to mark that stimulus is gone
+            dasbit(Par.Stimbitport, 0)  % sets stimbit to 0 to mark that stimulus is gone
         end
-        
-        % Check that everything is off
-        if VisStatus == 1 || LickEnabled == 1
-            cgflip(Par.grey)                % flips up a grey screen         
-            sendtoard(Par.sport, 'ID');     % disable the lick reward
-        end
-        
+        set(Gui.Currtrial,'Background',[.95 .95 .95])
+
         % Stop recording and turn camera off if this is in the WF setup
         if strcmp(Log.Setup, 'WFsetup')
             while toc(WFtimer) < Par.PostStimTime
@@ -436,9 +469,25 @@ try
             dasbit(Par.Recport, 0)  % stops recording
             dasbit(Par.Camport, 0)  % stops camera
         end
-
-        checkLicks
-        checkRunning
+        
+        
+        % If the Mouse made a False Alarm it has to run through white zone
+        if strcmp(Reaction, 'F') 
+            TotalSpriteCounter = 1;
+            CurrDistance = 0;
+            cgflip(Par.white)
+            while TotalSpriteCounter <= Log.FADist(Trial)
+                cgflip('V')
+                checkRunning
+                CurrDistance = CurrDistance + Speed.*1/Par.Refresh;
+                if CurrDistance > Par.DistanceThres
+                    TotalSpriteCounter = TotalSpriteCounter + 1;
+                    CurrDistance = 0;
+                end
+                checkLicks
+            end
+            cgflip(Par.grey)
+        end
 
         % save the Lick Data in the Log file
         Log.LickVec{Trial} = LickVec - RunningDiff;
@@ -464,8 +513,6 @@ try
             set(Gui.FAtext, 'string', num2str(FACounter))
             Log.RT(Trial) = str2double(RT);
             cprintf([1 0 0], 'False Alarm \n')
-            % and give the timeout punishment for FA
-            pause(Par.FA_Timeout)
         else
             if Log.Trialtype(Trial) == 1
                 Log.Reaction{Trial} = 'Miss';

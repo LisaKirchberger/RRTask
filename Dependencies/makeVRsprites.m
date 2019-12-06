@@ -12,7 +12,7 @@ HorizonCol = Par.grey; % Horizon Color
 SpriteOffset = 100;
 
 % The initial distance from centre screen (Rad) takes values from MinRad to 400
-RngRad = 400 - MinRad;
+RngRad = Par.Screeny/2 - MinRad;
 
 %  perform a log transformation
 k1 = log(MinRad);
@@ -40,12 +40,13 @@ for s = 1:StepSize-1
     
     % Set the object colours according to distance from centre
     Col(1:NumLinesVR,1:3) = 0.1;
-    Col(:,2) = 0.1+Rad'/400;
+    Col(:,2) = 0.1+Rad'/(Par.Screeny/3);
     Col(Col(:,2)>1,2) = 1; %#ok<SAGROW>
     
     % Draw the treadmill line segments
     cgpencol(0,0.2,0)
-    cgpolygon([1.5*(min(x)+min(y)) 1.5*(max(x)+max(y)) 1.5*(max(x)-max(y)) 1.5*(min(x)-min(y)) ], [min(y) max(y) max(y) min(y)])
+    %cgpolygon([1.5*(min(x)+min(y)) 1.5*(max(x)+max(y)) 1.5*(max(x)-max(y)) 1.5*(min(x)-min(y)) ], [min(y) max(y) max(y) min(y)])
+    cgpolygon([1.5*(min(x)-Par.Screeny/2) 1.5*(max(x)+max(y)) 1.5*(max(x)-max(y)) 1.5*(min(x)+Par.Screeny/2) ], [-Par.Screeny/2 max(y) max(y) -Par.Screeny/2])
     cgalign('l','c')
     cgrect(x,y,1.5*(x+y),y/11,Col)
     cgalign('r','c')

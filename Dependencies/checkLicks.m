@@ -1,3 +1,8 @@
+% checkLicks
+
+% this is bit confusing, but this one should be used with the arduino
+% script GoNoGoLick
+
 attempts = 0;
 set(Gui.Lickbox,'Background',[1 1 1])
 
