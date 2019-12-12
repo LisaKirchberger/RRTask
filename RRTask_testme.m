@@ -4,20 +4,13 @@ clc
 
 try
     %% Structure of this task:
-    % Mouse is head fixed and runs on a treadmill
-    % to get to the next trial the mouse has to run a certain distance on the treadmill
+    % Mouse is head fixed and sits in a tube setup or runs (running is not relevant for task) on a treadmill
     % On Go Trials the mouse is presented with a figure ground stimulus with certain orientations for figure and ground (needs to be set for
-    % each mouse in MouseParams before start of training. If the mouse licks it gets a reward
-    % On NoGo Trials a figure-ground stimulus with different orientation(s) appears that is not rewarded, if the mice lick on No-Go trials a white
-    % screen will appear and only disappears after a certain running distance
-    
-    % need Arduino script: GoNoGoLick (!!!)
-    correctArduino = questdlg('Did you upload the Arduino Script called GoNoGoLick?','Attention','Yes','No', 'Yes');
-    if strcmp(correctArduino, 'No')
-        disp('upload correct Arduino Script and then press any key on keyboard to continue')
-        pause
-    end
-    
+    % each mouse in MouseParams before start of training. On NoGo Trials a figure-ground stimulus with different orientations appears that is
+    % not rewarded
+    % On Go Trials mouse has to lick to get a reward
+    % On No Go Trials there is no reward, but a 5s timeout if the mouse licks
+           
     addpath(genpath(fullfile(pwd,'Dependencies')))
     addpath(genpath(fullfile(pwd,'Analysis')))
     
@@ -25,13 +18,11 @@ try
     global Par Log %#ok<TLEV>
     
     %% Experiment Parameters
-    
     prompt = {'Mouse Name', 'Exp Nr', 'Date'};
     def = {'Name', '1', datestr(datenum(date), 'yyyymmdd')};
     answer = inputdlg(prompt,'Please enter parameters',1,def);
     
     Log.Task = 'RRTask';
-    Log.TaskCondition = 'VR';
     Log.Mouse = answer{1};
     run checkMouse
     
@@ -101,11 +92,13 @@ try
 
     cgloadlib
     cgshut
+    %Screen
     cgopen(Par.Screenx, Par.Screeny, 32,Par.Refresh , Par.ScreenID) 
     cogstd('sPriority','high')
     for i = 1:120
         cgflip(Par.grey)
     end
+    %Sound
     cgsound('open',Par.Aud_nchannels,Par.Aud_nbits,Par.Aud_sampfrequency,-50,1) % -50db volume attenuation, sound device 0 (default sound device)
     
     %% initialize the DAS card in Opto and WF setup
@@ -135,24 +128,26 @@ try
     set(Par.sport, 'timeout', 0.1);
     sendtoard(Par.sport, 'ID');             % disable reward, just to be safe
     
-    % start the connection to the Running Encoder Arduino
-    if strcmp(get(Par.running_port, 'status'), 'closed')
-        fopen(Par.running_port);
+    % start the connection to the Running Encoder Arduino if there is a running wheel
+    try
+        if strcmp(get(Par.running_port, 'status'), 'closed') 
+            fopen(Par.running_port); 
+        end
+        set(Par.running_port, 'baudrate', 57600);
+        set(Par.running_port, 'timeout', 0.1);
+        fwrite(Par.running_port, 1, 'int16');   % Reset the encoder value to 0
+        Par.RecordRunning = 1;
+    catch
+        Par.RecordRunning = 0;
     end
-    set(Par.running_port, 'baudrate', 57600);
-    set(Par.running_port, 'timeout', 0.1);
-    fwrite(Par.running_port, 1, 'int16');   % Reset the encoder value to 0
-    Par.RecordRunning = 1;
-   
     
-    %% make sprites of VR and all visual stimuli
+     %% make sprites of VR and all visual stimuli
     
     run makeVisStimsprites
-    run makeVRsprites
     
-    
+
     %% make the GUI & initialize variables
-    run makeGUI_VR
+    run makeGUI_active
     global stopaftertrial %#ok<TLEV>
     global StartSession %#ok<TLEV>
     stopaftertrial = 0;
@@ -190,34 +185,27 @@ try
         BlinkVec = [];
         Reaction = [];
         ValveOpenTime = 0;
-
         
-        %% initialize camera if experiment is in the WF setup
-        
-        if strcmp(Log.Setup, 'WFsetup')
-            dasbit(Par.Camport, 1) % initializes camera
-        end
-        
+        % Initialization time timer (subtract from ITI):
+        InitializeTimer = tic;
         
         %% Read in Parameters from the GUI
-                
-        Log.Trial(Trial) = Trial;
-        Log.TaskPhase(Trial) = str2double(get(Gui.TaskPhase, 'string'));
+        
         Log.RewardDur(Trial) = str2double(get(Gui.RewardDur, 'string'));
         Log.Threshold(Trial) = str2double(get(Gui.Threshold, 'string'));
         Log.GoTrialProportion(Trial) = str2double(get(Gui.GoTrialProportion, 'string'));
-        Log.PassPerc(Trial) = str2double(get(Gui.PassPerc, 'string'));
+        Log.Trial(Trial) = Trial;
+        Log.TimeToLick(Trial) = str2double(get(Gui.TimeToLick, 'string'));
+        Log.VisDuration(Trial) = str2double(get(Gui.VisDuration, 'string'));
+        Log.GraceDuration(Trial) = str2double(get(Gui.GraceDuration, 'string'));
         Log.Passivedelay(Trial) = str2double(get(Gui.Passivedelay, 'string'));
-        Log.VRDist(Trial) = str2double(get(Gui.VRDist, 'string'));
-        Log.VisStimDist(Trial) = str2double(get(Gui.VisStimDist, 'string'));
-        Log.FADist(Trial) = str2double(get(Gui.FADist, 'string'));
-        Log.ConversionFactor(Trial) = str2double(get(Gui.ConversionFactor, 'string'));
+        Log.TaskPhase(Trial) = str2double(get(Gui.TaskPhase, 'string'));
         
+        % send Rewardtime, Threshold and Passvie Delay to Arduino
+        fprintf(Par.sport, ['IL ' get(Gui.RewardDur, 'String')]);
+        fprintf(Par.sport, ['IF ' get(Gui.Threshold, 'String')]);
+        fprintf(Par.sport, ['IT ' num2str(Log.Passivedelay(Trial)*1000)]);
         
-        %% Write Parameters to Arduino
-        
-        fprintf(Par.sport, ['IR ' get(Gui.RewardDur, 'String')]);
-        fprintf(Par.sport, ['IF ' get(Gui.Threshold, 'String')]);        
 
         %% Make a Trial Matrix with miniblocks if TrialMatrix is empty
         
@@ -254,7 +242,7 @@ try
             end
             Log.TestStim(Trial) = NaN;
             
-        else             
+        else                                                                %Testphase
             Log.TestStim(Trial) = TestMatrix(1);                            % There are 4 test stimuli (for now) which are:
             TestMatrix(1) = [];                                             
             if Log.TestStim(Trial) <= 2                                     % 1 Go      Figure grating, Background grey                  
@@ -267,11 +255,20 @@ try
             end
         end
         
+        
+            
+        
+        %% check for communication from the serial port
 
+        RunningTimer = tic; %use this later to subtract difference to stimulus onset
+        checkRunning
+        checkforLicks      % only using 'right' port
         
-        %% pick the correct sprites for the visual stimulus
         
-        if Log.TaskPhase(Trial) == 1      % Black/White Figure and Black/White Background
+        %% make the Visual Stimulus
+        
+            
+       if Log.TaskPhase(Trial) == 1      % Black/White Figure and Black/White Background
             if Log.Trialtype(Trial) == 1
                 Log.Fgsprite(Trial) = 3; % White Figure
                 Log.Bgsprite(Trial) = 2; % Black Background
@@ -307,6 +304,10 @@ try
             end
         end
         
+
+        
+        %% set the Trialtype in the Gui 
+        
         if Log.Trialtype(Trial) == 1
             set(Gui.Currtrial, 'String', 'Go')
             Log.Trialword{Trial} = 'Go';
@@ -314,9 +315,13 @@ try
             set(Gui.Currtrial, 'String', 'No Go')
             Log.Trialword{Trial} = 'No Go';
         end
+        
 
         %% Passive Rewards
-        if rand < Log.PassPerc(Trial)/100
+        
+        Log.PassPerc(Trial) = str2double(get(Gui.PassPerc, 'string'));
+        Pick = rand;
+        if Pick < Log.PassPerc(Trial)/100
             Log.Passives(Trial) = 1;
         else
             Log.Passives(Trial) = 0;
@@ -329,72 +334,82 @@ try
         end
         
         
-        %% Prep over, trial starts now
-        
-        % Flush any remaining Licks
-        if Par.sport.BytesAvailable
-            flushinput(Par.sport); % delete everything that was in the buffer
-        end
-        RunningTimer = tic; % use this later to subtract difference to stimulus onset
+        %% look at how long initialization took and subtract from ITI
+        subtract_Timer = toc(InitializeTimer); clear InitializeTimer
         
         
-        %% Display the treadmill until mouse has run appropriate distance
+        %% ITI and Cleanbaseline 
         
-        TotalSpriteCounter = 1;
-        CurrSprite = SpriteOffset + 1;
-        CurrDistance = 0;
-        
-        while TotalSpriteCounter <= Log.VRDist(Trial)
-            
-            % at each refresh of the Screen read out the speed of the mouse
-            % and determine the distance it ran in this time
-            cgflip('V')
+        Log.randITI(Trial) = Par.random_ITI * rand;
+        Log.ITI(Trial) = Par.ITI;
 
-            % Check the running speed
+        % pause for the fixed ITI minus the time that has passed during stimulus making
+        fixedITITimer = tic;
+        checkedOnce = 0;
+        while toc(fixedITITimer) < (Log.ITI(Trial)-subtract_Timer) || ~checkedOnce
+            checkforLicks
             checkRunning
-            CurrDistance = CurrDistance + Speed.*1/Par.Refresh;
-            
-            % Check if should move on to next Sprite
-            if CurrDistance > Par.DistanceThres
-                TotalSpriteCounter = TotalSpriteCounter + 1;
-                CurrSprite = CurrSprite + 1;
-                if CurrSprite == SpriteOffset + StepSize
-                    CurrSprite = SpriteOffset + 1;
-                end
-                cgdrawsprite(CurrSprite,0,0)
-                cgflip(Par.grey)
-                CurrDistance = 0;
-            end
-            
-            % Check the licks
-            checkLicks
-            
+            checkedOnce = 1;
         end
-
-        %% Start Baseline imaging if in WF setup
+        clear fixedITITimer
         
+        % Cleanbaseline
+        CleanBaselineMin = str2double(get(Gui.CleanBaselineMin, 'string'));
+        CleanBaselineMax = str2double(get(Gui.CleanBaselineMax, 'string'));
+        Log.CleanBaseline(Trial) = CleanBaselineMin + rand(1) * (CleanBaselineMax - CleanBaselineMin);
+        if Log.CleanBaseline(Trial) % Pause for Cleanbaselinetime until the mouse stops licking
+            tempLickVec = LickVec;
+            cleanBaseTimer = tic;
+            while toc(cleanBaseTimer) < Log.CleanBaseline(Trial)            
+                checkforLicks
+                checkRunning
+                if ~isequal(LickVec, tempLickVec)
+                    cleanBaseTimer = tic;
+                    tempLickVec = LickVec;
+                end
+            end
+        end
+        clear cleanBaseTimer
+        
+        
+        % initialize camera if experiment is in the WF setup
+        if strcmp(Log.Setup, 'WFsetup')
+            dasbit(Par.Camport, 1) % initializes camera
+        end
+        
+        % Random ITI minus once the CleanBaseline Time
+        checkedOnce = 0;
+        randITITimer = tic;
+        while toc(randITITimer) <  (Log.randITI(Trial) - Log.CleanBaseline(Trial)) || ~checkedOnce 
+            checkforLicks
+            checkRunning
+            checkedOnce = 1;
+        end
+        clear randITITimer
+        
+        % Start Baseline imaging if in WF setup
         if strcmp(Log.Setup, 'WFsetup')
             dasbit(Par.Recport, 1) % starts recording
-            WFtimer = tic;
-            while toc(WFtimer) < Par.PreStimTime
-                checkLicks
-                checkRunning
-                pause(0.002)
-            end
-            clear WFtimer
+            pause(Par.PreStimTime) % pauses baseline time
         end
         
         
         %% Display the Visual Go or NoGo Stimulus
 
+        checkforLicks
+        
         % Send Start signal to Arduino and start the Trial
         fprintf(Par.sport, 'IS');   % starts the trial
         RunningDiff = toc(RunningTimer);
         
+        
         % Show the Visual Stimulus   
         cgdrawsprite(Log.Fgsprite(Trial),0,0)
         cgdrawsprite(Log.Bgsprite(Trial),0,0)
+        VisStatus = 1;
+        cgflip('V')
         cgflip(Par.grey)
+        cgflip('V')
         
         % Stimulus is there
         if strcmp(Log.Setup, 'WFsetup')
@@ -409,94 +424,94 @@ try
             set(Gui.Currtrial,'Background',[1 1 0])
         end
         
-        Enable = 1;
+        EnableGrace = 1;
         LickEnabled = 0;
-        TotalSpriteCounter = 1;
-        CurrDistance = 0;
-        
-        % Mouse runs through Stimulus corridor 
-        while TotalSpriteCounter <= Log.VisStimDist(Trial) && ~strcmp(Reaction, 'F')
-            
-            % at each refresh of the Screen read out the speed of the mouse
-            % and determine the distance it ran in this time
-            cgflip('V')
-            
-            % Check the running speed
+
+        while toc(StimOnset) < max([Log.TimeToLick(Trial) Log.VisDuration(Trial)])
+
+            checkforLicks
             checkRunning
-            CurrDistance = CurrDistance + Speed.*1/Par.Refresh;
             
-            % Check if crossed distance Threshold to next sprite
-            if CurrDistance > Par.DistanceThres
-                TotalSpriteCounter = TotalSpriteCounter + 1;
-                CurrDistance = 0;
-            end
-            
-            % Check the Licks/Response
-            checkLicks
-            
-            % Enable the Lick Spout (once)
-            if toc(StimOnset) > Log.GraceDuration && Enable
+            % Enable the Lick spout for this trial
+            if toc(StimOnset) > Log.GraceDuration(Trial) && EnableGrace
                 if Log.Trialtype(Trial) == 1    % Go Trial
                     fprintf(Par.sport, 'IE 1');
                 else                            % No Go Trial
                     fprintf(Par.sport, 'IE 2');
                 end
-                Enable = 0;
+                EnableGrace = 0;
                 LickEnabled = 1;
             end
-            
-            % Give a passive if wanted (once)
+
+            % check if should give a passive
             if Log.Passives(Trial) && toc(StimOnset) > Log.Passivedelay(Trial) && ~gavepassive
-                fprintf(Par.sport, 'IP');          % give passive
+                sendtoard(Par.sport, 'IP')          % give passive
                 gavepassive = 1;
-                Enable = 0;
-                LickEnabled = 1;
                 cprintf([0.2 0.2 0.2], 'passive trial \n')
             end
             
+            % check if Time to Lick is over and should disable Lickspout
+            if toc(StimOnset) > Log.TimeToLick(Trial) && LickEnabled == 1
+                sendtoard(Par.sport, 'ID');
+                LickEnabled = 0;
+            end
+
+            
+            % check if should turn off visual stimulus
+            if toc(StimOnset) > Log.VisDuration(Trial) && VisStatus == 1
+                cgflip(Par.grey)
+                VisStatus = 0;
+                if strcmp(Log.Setup, 'WFsetup')
+                    dasbit(Par.Stimbitport, 0)  % sets stimbit to 0 to mark that stimulus is gone
+                end
+            end
+
         end
         
-        % End of Trial
-        cgflip(Par.grey)
-        Log.Stimdur(Trial) = toc(StimOnset);
-        sendtoard(Par.sport, 'ID');     % disable the lick reward
-        if strcmp(Log.Setup, 'WFsetup')
-            dasbit(Par.Stimbitport, 0)  % sets stimbit to 0 to mark that stimulus is gone
-        end
         set(Gui.Currtrial,'Background',[.95 .95 .95])
-
+        
+        % end of trial
+        Log.Stimdur(Trial) = toc(StimOnset);
+        if strcmp(Log.Setup, 'WFsetup')
+            dasbit(Par.Stimbitport, 0)      % sets stimbit to 0 to mark that stimulus is gone
+        end
+        
+        % Check that everything is off
+        if VisStatus == 1 || LickEnabled == 1
+            cgflip(Par.grey)                % flips up a grey screen         
+            sendtoard(Par.sport, 'ID');     % disable the lick reward
+        end
+        
         % Stop recording and turn camera off if this is in the WF setup
         if strcmp(Log.Setup, 'WFsetup')
-            while toc(WFtimer) < Par.PostStimTime
-                checkLicks
-                checkRunning
-                pause(0.002)
-            end
+            pause(Par.PostStimTime)
             dasbit(Par.Recport, 0)  % stops recording
             dasbit(Par.Camport, 0)  % stops camera
         end
+
+        checkforLicks
+        checkRunning
+
+        % get the trialtime from the arduino
+        fprintf(Par.sport, 'IA');
         
-        
-        % If the Mouse made a False Alarm it has to run through white zone
-        if strcmp(Reaction, 'F') 
-            TotalSpriteCounter = 1;
-            CurrDistance = 0;
-            cgflip(Par.white)
-            while TotalSpriteCounter <= Log.FADist(Trial)
-                cgflip('V')
-                checkRunning
-                CurrDistance = CurrDistance + Speed.*1/Par.Refresh;
-                if CurrDistance > Par.DistanceThres
-                    TotalSpriteCounter = TotalSpriteCounter + 1;
-                    CurrDistance = 0;
-                end
-                checkLicks
+        I = '';
+        to = tic;
+        while ~strcmp(I, 'R') && toc(to) < 0.2
+            I = fscanf(Par.sport, '%s'); % break test
+            if strcmp(I, 'R')
+                break
             end
-            cgflip(Par.grey)
         end
+        trialtime = str2num(fscanf(Par.sport, '%s')); %#ok<ST2NM>
 
         % save the Lick Data in the Log file
-        Log.LickVec{Trial} = LickVec - RunningDiff;
+        try
+            Log.LickVec{Trial} = LickVec - trialtime;
+        catch
+            Log.LickVec{Trial} = NaN;
+            disp('no trialtime?')
+        end
         
         % save the Running Data in the Log file
         Log.RunningVec{Trial} = RunningVec;
@@ -505,20 +520,27 @@ try
         
         %% Process response
         
-        if strcmp(Reaction, 'H')
+        if strcmp(Reaction, '1')
             Log.Reaction{Trial} = 'Hit';
             Log.Reactionidx(Trial) = 1;
             HitCounter = HitCounter + 1;
             set(Gui.Hittext, 'string', num2str(HitCounter));
             Log.RT(Trial) = str2double(RT);
             cprintf([0 1 0], 'Hit \n')
-        elseif strcmp(Reaction, 'F')
+        elseif strcmp(Reaction, '0')
             Log.Reaction{Trial} = 'False Alarm';
             FACounter = FACounter + 1;
             Log.Reactionidx(Trial) = -1;
             set(Gui.FAtext, 'string', num2str(FACounter))
             Log.RT(Trial) = str2double(RT);
             cprintf([1 0 0], 'False Alarm \n')
+            % and give the timeout punishment for FA
+            FATimer = tic;
+            while toc(FATimer) < Par.FA_Timeout
+                checkforLicks
+                checkRunning
+            end
+            clear FATimer
         else
             if Log.Trialtype(Trial) == 1
                 Log.Reaction{Trial} = 'Miss';
@@ -628,13 +650,58 @@ catch ME
     
 end
 
+
+
 cogstd('sPriority','normal')
 cgshut
 
 if strcmp(get(Par.sport, 'status'), 'open')
     fclose(Par.sport);
 end
-if strcmp(get(Par.running_port, 'status'), 'open')
+if Par.RecordRunning
     fclose(Par.running_port);
 end
 
+
+
+%% Arduino commands
+
+% start Arduino
+% Par.sport = serial('com3');
+% set(Par.sport,'InputBufferSize', 10240)
+% if strcmp(get(Par.sport, 'status'), 'closed')
+%     fopen(Par.sport)
+% end
+% set(Par.sport, 'baudrate', 250000);
+% set(Par.sport, 'timeout', 0.1);
+% sendtoard(Par.sport, 'ID');
+
+
+
+% Reward 1 is pin 10 digitalWrite(10, LOW) closes it and digitalWrite(10,HIGH) opens it
+% Reward 2 is pin 11 same as above
+
+%fprintf(Par.sport, 'IF');   % returns 'D' and sets the treshold to the value you send
+%fprintf(Par.sport, 'IM');   % returns 'D' and sets easymode to the value you send
+%fprintf(Par.sport, 'IL');   % returns 'D' and sets Rewardtime1 to the value you send, is the right port
+%fprintf(Par.sport, 'IR');   % returns 'D' and sets Rewardtime2 to the value you send, is the left port
+%fprintf(Par.sport, 'IO');   % Motor
+%fprintf(Par.sport, 'IT');   % returns 'D' and sets Timeout to the value you send? what is timeout, I think it's the Graceperiod or the passive delay
+
+%fprintf(Par.sport, 'IS');   % starts the trial, Trialtime, passive and wentthrough, nothing gets returned
+%fprintf(Par.sport, 'IE 1'): % returns 'D' and sets Enable to 1 (right)
+%fprintf(Par.sport, 'IE 2'); % returns 'D' and sets Enable to 2 (left)
+%fprintf(Par.sport, 'IA');   % returns 'R' and returns the Trialtime, so basically the RT
+%fprintf(Par.sport, 'IC');   % returns 'D' followed by the values of the two thresholds (first 1 then 2)
+%fprintf(Par.sport, 'IP');   % returns 'D' and gives a passive if the time is greater than timeout
+%fprintf(Par.sport, 'ID');   % returns 'D', sets Enable to 0 and closes both valves
+
+% if Par.sport.BytesAvailable
+%     while ~strcmp(I, 'O') && Par.sport.BytesAvailable
+%         I = fscanf(Par.sport, '%s');
+%         if strcmp(I, 'O')
+%             break
+%         end
+%     end
+% end
+%
