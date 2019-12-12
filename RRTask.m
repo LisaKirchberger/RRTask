@@ -14,7 +14,6 @@ try
     addpath(genpath(fullfile(pwd,'Dependencies')))
     addpath(genpath(fullfile(pwd,'Analysis')))
     
-    addpath('Dependencies')
     global Par Log %#ok<TLEV>
     
     %% Experiment Parameters
