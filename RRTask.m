@@ -313,6 +313,7 @@ try
             
         else     % Go or NoGo isolated or mixed
             
+            fprintf('Test Trial: %g \n', Log.TestStim(Trial))
             switch Log.TestStim(Trial)
                 case 1
                     % Figure with GO grating
@@ -656,11 +657,13 @@ try
         %% update the d prime plot
         Par.d_prime_windowsize = 20;
         if Trial <= Par.d_prime_windowsize
-            Log.dprime(Trial) = Calcdprime(Log.Reactionidx);
-            Log.criterion(Trial) = CalcCriterion(Log.Reactionidx);
+            wantedTrials = isnan(Log.TestStim);
+            Log.dprime(Trial) = Calcdprime(Log.Reactionidx(wantedTrials));
+            Log.criterion(Trial) = CalcCriterion(Log.Reactionidx(wantedTrials));
         else
-            Log.dprime(Trial) = Calcdprime(Log.Reactionidx(Trial-Par.d_prime_windowsize:Trial));
-            Log.criterion(Trial) = CalcCriterion(Log.Reactionidx(Trial-Par.d_prime_windowsize:Trial));
+            wantedTrials = isnan(Log.TestStim) & Log.Trial>Trial-Par.d_prime_windowsize;
+            Log.dprime(Trial) = Calcdprime(Log.Reactionidx(wantedTrials));
+            Log.criterion(Trial) = CalcCriterion(Log.Reactionidx(wantedTrials));
         end
         
         plot(perfplot, Log.dprime)

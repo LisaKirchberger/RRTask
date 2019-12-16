@@ -297,10 +297,11 @@ try
                 Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
             else
                 Log.Fgsprite(Trial) = 14+randi(4,1);     % NoGoFigOri in 1 of 4 Phases (15-18)
-                Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                Log.Bgsprite(Trial) = 18+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
             end
             
         else    % Test Stimuli
+            fprintf('Test Trial: %g \n', Log.TestStim(Trial))
             switch Log.TestStim(Trial)
                 case 1
                     Log.Fgsprite(Trial) = 6+randi(4,1);      % GoFigOri in 1 of 4 Phases (7-10)
@@ -313,10 +314,10 @@ try
                     Log.Bgsprite(Trial) = 6;                 % Grey background
                 case 4
                     Log.Fgsprite(Trial) = 5;                 % Grey Figure
-                    Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                    Log.Bgsprite(Trial) = 18+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
                 case 5
                     Log.Fgsprite(Trial) = 6+randi(4,1);      % GoFigOri in 1 of 4 Phases (7-10)
-                    Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                    Log.Bgsprite(Trial) = 18+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
                 case 6
                     Log.Fgsprite(Trial) = 14+randi(4,1);     % NoGoFigOri in 1 of 4 Phases (15-18)
                     Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
@@ -582,11 +583,13 @@ try
         %% update the d prime plot
         Par.d_prime_windowsize = 20;
         if Trial <= Par.d_prime_windowsize
-            Log.dprime(Trial) = Calcdprime(Log.Reactionidx);
-            Log.criterion(Trial) = CalcCriterion(Log.Reactionidx);
+            wantedTrials = isnan(Log.TestStim);
+            Log.dprime(Trial) = Calcdprime(Log.Reactionidx(wantedTrials));
+            Log.criterion(Trial) = CalcCriterion(Log.Reactionidx(wantedTrials));
         else
-            Log.dprime(Trial) = Calcdprime(Log.Reactionidx(Trial-Par.d_prime_windowsize:Trial));
-            Log.criterion(Trial) = CalcCriterion(Log.Reactionidx(Trial-Par.d_prime_windowsize:Trial));
+            wantedTrials = isnan(Log.TestStim) & Log.Trial>Trial-Par.d_prime_windowsize;
+            Log.dprime(Trial) = Calcdprime(Log.Reactionidx(wantedTrials));
+            Log.criterion(Trial) = CalcCriterion(Log.Reactionidx(wantedTrials));
         end
         
         plot(perfplot, Log.dprime)
