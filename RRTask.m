@@ -213,20 +213,16 @@ try
         if isempty(TestMatrix) && Log.TaskPhase(Trial) >= 3
             if Log.TaskPhase(Trial) == 3
                 TestStim = 1:4;
-                TestStim = TestStim(randperm(length(TestStim)));
-                for t = 1:length(TestStim)
-                    Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
-                    Stims = Stims(randperm(length(Stims)));
-                    TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
-                end
             elseif Log.TaskPhase(Trial) == 4
                 TestStim = 5:6;
-                TestStim = TestStim(randperm(length(TestStim)));
-                for t = 1:length(TestStim)
-                    Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
-                    Stims = Stims(randperm(length(Stims)));
-                    TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
-                end
+            elseif Log.TaskPhase(Trial) == 5
+                TestStim = 1:6;
+            end
+            TestStim = TestStim(randperm(length(TestStim)));
+            for t = 1:length(TestStim)
+                Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
+                Stims = Stims(randperm(length(Stims)));
+                TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
             end
         end
 
