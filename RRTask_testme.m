@@ -208,20 +208,30 @@ try
 
         %% Make a Trial Matrix with miniblocks if TrialMatrix is empty
         
-        if isempty(TrialMatrix)
+         if isempty(TrialMatrix)
             MiniLength = 4;
             Miniblock = zeros(MiniLength,1);
             Miniblock(1:round(Log.GoTrialProportion(Trial)/(100/MiniLength)))= 1;
             TrialMatrix = Miniblock(randperm(MiniLength));
         end
 
-        if isempty(TestMatrix)
-            TestStim = 1:4;
-            TestStim = TestStim(randperm(length(TestStim)));
-            for t = 1:length(TestStim)
-                Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
-                Stims = Stims(randperm(length(Stims)));
-                TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
+        if isempty(TestMatrix) && Log.TaskPhase(Trial) >= 3
+            if Log.TaskPhase(Trial) == 3
+                TestStim = 1:4;
+                TestStim = TestStim(randperm(length(TestStim)));
+                for t = 1:length(TestStim)
+                    Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
+                    Stims = Stims(randperm(length(Stims)));
+                    TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
+                end
+            elseif Log.TaskPhase(Trial) == 4
+                TestStim = 5:6;
+                TestStim = TestStim(randperm(length(TestStim)));
+                for t = 1:length(TestStim)
+                    Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
+                    Stims = Stims(randperm(length(Stims)));
+                    TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
+                end
             end
         end
 
@@ -241,18 +251,22 @@ try
             end
             Log.TestStim(Trial) = NaN;
             
-        else                                                                %Testphase
+        else                                                                % Testphase
             Log.TestStim(Trial) = TestMatrix(1);                            % There are 4 test stimuli (for now) which are:
             TestMatrix(1) = [];                                             
-            if Log.TestStim(Trial) <= 2                                     % 1 Go      Figure grating, Background grey                  
+            if Log.TestStim(Trial) == 1 || Log.TestStim(Trial) == 2         % 1 Go      Figure grating, Background grey                  
                 Log.Trialtype(Trial) = 1;                                   % 2 Go      Figure grey, Background grating    
-            elseif Log.TestStim(Trial) >= 3                                 % 3 NoGo    Figure grating, Background grey
+            elseif Log.TestStim(Trial) == 3 || Log.TestStim(Trial) == 4     % 3 NoGo    Figure grating, Background grey
                 Log.Trialtype(Trial) = 0;                                   % 4 NoGo    Figure grey, Background grating
-            else                               
-                Log.Trialtype(Trial) = TrialMatrix(1);                      % NaN       is a normal trial, just leave Trialtype as it is
+            elseif Log.TestStim(Trial) == 5 || Log.TestStim(Trial) == 6     % 5 random reward Go Fig + NoGo Bg 
+                Log.Trialtype(Trial) = randi([0 1], 1);                     % 6 random reward NoGo Fig + Go Bg
+            else 
+                Log.Trialtype(Trial) = TrialMatrix(1);                      % NaN       is a normal trial, just take next normal trial from trial matrix
                 TrialMatrix(1) = [];
             end
+       
         end
+        
         
         
             
@@ -277,7 +291,7 @@ try
                 Log.Trialtype(Trial) = 1;
             end
             
-        elseif Log.TaskPhase(Trial) == 2 || (Log.TaskPhase(Trial) == 3 && isnan(Log.TestStim(Trial)))    % Go and NoGo Figure-Ground stimuli
+        elseif Log.TaskPhase(Trial) == 2 || isnan(Log.TestStim(Trial))    % Go and NoGo Figure-Ground stimuli
             if Log.Trialtype(Trial) == 1
                 Log.Fgsprite(Trial) = 6+randi(4,1);      % GoFigOri in 1 of 4 Phases (7-10)
                 Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
@@ -300,6 +314,12 @@ try
                 case 4
                     Log.Fgsprite(Trial) = 5;                 % Grey Figure
                     Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                case 5
+                    Log.Fgsprite(Trial) = 6+randi(4,1);      % GoFigOri in 1 of 4 Phases (7-10)
+                    Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                case 6
+                    Log.Fgsprite(Trial) = 14+randi(4,1);     % NoGoFigOri in 1 of 4 Phases (15-18)
+                    Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
             end
         end
         

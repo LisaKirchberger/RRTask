@@ -210,13 +210,23 @@ try
             TrialMatrix = Miniblock(randperm(MiniLength));
         end
 
-        if isempty(TestMatrix)
-            TestStim = 1:4;
-            TestStim = TestStim(randperm(length(TestStim)));
-            for t = 1:length(TestStim)
-                Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
-                Stims = Stims(randperm(length(Stims)));
-                TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
+        if isempty(TestMatrix) && Log.TaskPhase(Trial) >= 3
+            if Log.TaskPhase(Trial) == 3
+                TestStim = 1:4;
+                TestStim = TestStim(randperm(length(TestStim)));
+                for t = 1:length(TestStim)
+                    Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
+                    Stims = Stims(randperm(length(Stims)));
+                    TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
+                end
+            elseif Log.TaskPhase(Trial) == 4
+                TestStim = 5:6;
+                TestStim = TestStim(randperm(length(TestStim)));
+                for t = 1:length(TestStim)
+                    Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
+                    Stims = Stims(randperm(length(Stims)));
+                    TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
+                end
             end
         end
 
@@ -236,17 +246,20 @@ try
             end
             Log.TestStim(Trial) = NaN;
             
-        else                                                                %Testphase
+        else                                                                % Testphase
             Log.TestStim(Trial) = TestMatrix(1);                            % There are 4 test stimuli (for now) which are:
             TestMatrix(1) = [];                                             
-            if Log.TestStim(Trial) <= 2                                     % 1 Go      Figure grating, Background grey                  
+            if Log.TestStim(Trial) == 1 || Log.TestStim(Trial) == 2         % 1 Go      Figure grating, Background grey                  
                 Log.Trialtype(Trial) = 1;                                   % 2 Go      Figure grey, Background grating    
-            elseif Log.TestStim(Trial) >= 3                                 % 3 NoGo    Figure grating, Background grey
+            elseif Log.TestStim(Trial) == 3 || Log.TestStim(Trial) == 4     % 3 NoGo    Figure grating, Background grey
                 Log.Trialtype(Trial) = 0;                                   % 4 NoGo    Figure grey, Background grating
-            else                               
+            elseif Log.TestStim(Trial) == 5 || Log.TestStim(Trial) == 6     % 5 random reward Go Fig + NoGo Bg 
+                Log.Trialtype(Trial) = randi([0 1], 1);                     % 6 random reward NoGo Fig + Go Bg
+            else
                 Log.Trialtype(Trial) = TrialMatrix(1);                      % NaN       is a normal trial, just leave Trialtype as it is
                 TrialMatrix(1) = [];
             end
+       
         end
         
         
@@ -278,10 +291,9 @@ try
             Log.BgPhase(Trial) = NaN;
             Log.BgOri(Trial) = NaN;
             Log.FgOri(Trial) = NaN;
-            Log.TestStim(Trial) = NaN;
             
             
-        elseif Log.TaskPhase(Trial) == 2 || (Log.TaskPhase(Trial) == 3 && isnan(Log.TestStim(Trial)))  % Go and NoGo Figure-Ground stimuli
+        elseif Log.TaskPhase(Trial) == 2 || isnan(Log.TestStim(Trial))  % Go and NoGo Figure-Ground stimuli
             
             if Log.Trialtype(Trial) == 1
                 Log.FgOri(Trial) = Par.GoFigOrient;
@@ -299,7 +311,7 @@ try
             Log.FgColor(Trial) = NaN;
             Log.TestStim(Trial) = NaN;
             
-        else     % Test Stimuli
+        else     % Go or NoGo isolated or mixed
             
             switch Log.TestStim(Trial)
                 case 1
@@ -349,6 +361,30 @@ try
                     Log.FgPhase(Trial) = NaN;
                     Log.FgOri(Trial) = NaN;
                     Log.BgColor(Trial) = NaN;
+                    
+                case 5
+                    % Figure with GO grating
+                    Log.FgOri(Trial) = Par.GoFigOrient;
+                    Log.FgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
+                    FGcogentGrating = makeFullScreenGrating(Log.FgOri(Trial),Log.FgPhase(Trial),0,gammaconversion); % 1 with circle, 0 without
+                    % Background with NOGO grating
+                    Log.BgOri(Trial) = Par.NoGoBgOrient;
+                    Log.BgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
+                    BGcogentGrating = makeFullScreenGrating(Log.BgOri(Trial),Log.BgPhase(Trial),1,gammaconversion); % 1 with circle, 0 without
+                    Log.BgColor(Trial) = NaN;
+                    Log.FgColor(Trial) = NaN;
+                    
+                case 6
+                    % Figure with NOGO grating
+                    Log.FgOri(Trial) = Par.NoGoFigOrient;
+                    Log.FgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
+                    FGcogentGrating = makeFullScreenGrating(Log.FgOri(Trial),Log.FgPhase(Trial),0,gammaconversion); % 1 with circle, 0 without
+                    % Background with GO grating
+                    Log.BgOri(Trial) = Par.GoBgOrient;
+                    Log.BgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
+                    BGcogentGrating = makeFullScreenGrating(Log.BgOri(Trial),Log.BgPhase(Trial),1,gammaconversion); % 1 with circle, 0 without
+                    Log.BgColor(Trial) = NaN;
+                    Log.FgColor(Trial) = NaN;
                     
             end
             
