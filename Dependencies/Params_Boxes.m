@@ -36,6 +36,13 @@ Par.DegPerPix = 1/Par.PixPerDeg;
 Par.RadPerPix = Par.DegPerPix*pi/180;
 
 Par.FigSize = 35;
+Par.RelativeApertureSizes = [1 2 4 8]; % 1 Bg same area as Fig, 2 Bg twice surface area as Fig, 4 Bg 4 times area as Fig, etc. 
+counter = 0;
+for p = Par.RelativeApertureSizes
+   counter = counter + 1;
+   surfacearea = (Par.FigSize/2)^2*pi;
+   Par.ApertureSizes(counter) = sqrt((p*surfacearea+surfacearea)/pi)*2;
+end
 Par.SpatialFreq = 0.08;
 Par.Period = round(Par.PixPerDeg./Par.SpatialFreq);
 Par.PhaseOpt = 0:0.5*pi:2*pi-0.5*pi;

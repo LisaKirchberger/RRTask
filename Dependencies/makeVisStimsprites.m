@@ -5,7 +5,7 @@ Luminances = [Par.blacklum Par.whitelum Par.greylum];
 counter = 1;
 for l = 1:length(Luminances)
     for c = [0 1]
-        cogentGrating = makeUniformFullScreen(Luminances(l),c,gammaconversion);
+        cogentGrating = makeUniformFullScreen(Luminances(l),c,Par.FigSize,gammaconversion);
         cgmakesprite(counter,Par.Screenx,Par.Screeny,Par.grey)
         cgsetsprite(counter)
         cgloadarray(counter,Par.Screenx,Par.Screeny,cogentGrating)

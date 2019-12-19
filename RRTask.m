@@ -235,6 +235,14 @@ try
                     Stims = Stims(randperm(length(Stims)));
                     TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
                 end
+            elseif Log.TaskPhase(Trial) == 6 % Aperture
+                TestStim = 7:14;
+                TestStim = TestStim(randperm(length(TestStim)));
+                for t = 1:length(TestStim)
+                    Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
+                    Stims = Stims(randperm(length(Stims)));
+                    TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
+                end
             end
             
         end
@@ -264,6 +272,10 @@ try
                 Log.Trialtype(Trial) = 0;                                   % 4 NoGo    Figure grey, Background grating
             elseif Log.TestStim(Trial) == 5 || Log.TestStim(Trial) == 6     % 5   Go Fig + NoGo Bg   could get a reward
                 Log.Trialtype(Trial) = 1;                                   % 6   NoGo Fig + Go Bg   could get a reward  %randi([0 1], 1);
+            elseif Log.TestStim(Trial) == 7 || Log.TestStim(Trial) == 8 || Log.TestStim(Trial) == 9 || Log.TestStim(Trial) == 10
+                Log.Trialtype(Trial) = 1; 
+            elseif Log.TestStim(Trial) == 11 || Log.TestStim(Trial) == 12 || Log.TestStim(Trial) == 13 || Log.TestStim(Trial) == 14
+                Log.Trialtype(Trial) = 0; 
             else
                 Log.Trialtype(Trial) = TrialMatrix(1);                      % NaN       is a normal trial, just leave Trialtype as it is
                 TrialMatrix(1) = [];
@@ -294,15 +306,15 @@ try
                 Log.FgColor(Trial) = Par.blacklum;
                 Log.Trialtype(Trial) = 1;
             end
-            BGcogentGrating = makeUniformFullScreen(Log.BgColor(Trial),1,gammaconversion); % 1 with circle, 0 without
-            FGcogentGrating = makeUniformFullScreen(Log.FgColor(Trial),0,gammaconversion); % 1 with circle, 0 without
+            BGcogentGrating = makeUniformFullScreen(Log.BgColor(Trial),1,Par.FigSize,gammaconversion); % 1 with circle, 0 without
+            FGcogentGrating = makeUniformFullScreen(Log.FgColor(Trial),0,Par.FigSize,gammaconversion); % 1 with circle, 0 without
             Log.FgPhase(Trial) = NaN;
             Log.BgPhase(Trial) = NaN;
             Log.BgOri(Trial) = NaN;
             Log.FgOri(Trial) = NaN;
             
             
-        elseif Log.TaskPhase(Trial) == 2 || isnan(Log.TestStim(Trial))  % Go and NoGo Figure-Ground stimuli
+        elseif Log.TaskPhase(Trial) == 2 || isnan(Log.TestStim(Trial))  || Log.TestStim(Trial) >= 7 % Go and NoGo Figure-Ground stimuli
             
             if Log.Trialtype(Trial) == 1
                 Log.FgOri(Trial) = Par.GoFigOrient;
@@ -318,7 +330,16 @@ try
             FGcogentGrating = makeFullScreenGrating(Log.FgOri(Trial),Log.FgPhase(Trial),0,gammaconversion); % 1 with circle, 0 without
             Log.BgColor(Trial) = NaN;
             Log.FgColor(Trial) = NaN;
-            Log.TestStim(Trial) = NaN;
+            
+            if Log.TestStim(Trial) <= 10
+                % make an Aperture Stimulus
+                Log.ApertureSize(Trial) = Par.ApertureSizes(Log.TestStim(Trial)-6);
+                cogentAperture = makeUniformFullScreen(Par.greylum,2,Log.ApertureSize(Trial),gammaconversion); % 1 with circle, 0 without, 2 with blue circle
+            elseif Log.TestStim(Trial) > 10
+                % make an Aperture Stimulus
+                Log.ApertureSize(Trial) = Par.ApertureSizes(Log.TestStim(Trial)-10);
+                cogentAperture = makeUniformFullScreen(Par.greylum,2,Log.ApertureSize(Trial),gammaconversion); % 1 with circle, 0 without, 2 with blue circle
+            end
             
         else     % Go or NoGo isolated or mixed
             
@@ -331,7 +352,7 @@ try
                     FGcogentGrating = makeFullScreenGrating(Log.FgOri(Trial),Log.FgPhase(Trial),0,gammaconversion); % 1 with circle, 0 without
                     % Grey Background
                     Log.BgColor(Trial) = Par.greylum;
-                    BGcogentGrating = makeUniformFullScreen(Log.BgColor(Trial),1,gammaconversion); % 1 with circle, 0 without
+                    BGcogentGrating = makeUniformFullScreen(Log.BgColor(Trial),1,Par.FigSize,gammaconversion); % 1 with circle, 0 without
                     Log.BgPhase(Trial) = NaN;
                     Log.BgOri(Trial) = NaN;
                     Log.FgColor(Trial) = NaN;
@@ -339,7 +360,7 @@ try
                 case 2
                     % Grey Figure
                     Log.FgColor(Trial) = Par.greylum;
-                    FGcogentGrating = makeUniformFullScreen(Log.FgColor(Trial),0,gammaconversion); % 1 with circle, 0 without
+                    FGcogentGrating = makeUniformFullScreen(Log.FgColor(Trial),0,Par.FigSize,gammaconversion); % 1 with circle, 0 without
                     % Background with GO grating
                     Log.BgOri(Trial) = Par.GoBgOrient;
                     Log.BgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
@@ -355,7 +376,7 @@ try
                     FGcogentGrating = makeFullScreenGrating(Log.FgOri(Trial),Log.FgPhase(Trial),0,gammaconversion); % 1 with circle, 0 without
                     % Grey Background
                     Log.BgColor(Trial) = Par.greylum;
-                    BGcogentGrating = makeUniformFullScreen(Log.BgColor(Trial),1,gammaconversion); % 1 with circle, 0 without
+                    BGcogentGrating = makeUniformFullScreen(Log.BgColor(Trial),1,Par.FigSize,gammaconversion); % 1 with circle, 0 without
                     Log.BgPhase(Trial) = NaN;
                     Log.BgOri(Trial) = NaN;
                     Log.FgColor(Trial) = NaN;
@@ -363,7 +384,7 @@ try
                 case 4
                     % Grey Figure
                     Log.FgColor(Trial) = Par.greylum;
-                    FGcogentGrating = makeUniformFullScreen(Log.FgColor(Trial),0,gammaconversion); % 1 with circle, 0 without
+                    FGcogentGrating = makeUniformFullScreen(Log.FgColor(Trial),0,Par.FigSize,gammaconversion); % 1 with circle, 0 without
                     % Background with NOGO grating
                     Log.BgOri(Trial) = Par.NoGoBgOrient;
                     Log.BgPhase(Trial) = Par.PhaseOpt(randi(length(Par.PhaseOpt)));
@@ -408,7 +429,13 @@ try
         cgloadarray(11,Par.Screenx,Par.Screeny,FGcogentGrating)
         cgdrawsprite(11,0,0)
         cgdrawsprite(12,0,0)
+        if Log.TestStim(Trial) >= 7  % add the Aperture
+            cgloadarray(13,Par.Screenx,Par.Screeny,cogentAperture)
+            cgtrncol(13,'b')
+            cgdrawsprite(13,0,0)
+        end
         cgsetsprite(0)
+
 
         
         %% set the Trialtype in the Gui 

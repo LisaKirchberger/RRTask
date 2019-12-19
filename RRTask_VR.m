@@ -245,6 +245,15 @@ try
                     Stims = Stims(randperm(length(Stims)));
                     TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
                 end
+            elseif Log.TaskPhase(Trial) == 5
+                TestStim = 1:6;
+                TestStim = TestStim(randperm(length(TestStim)));
+                for t = 1:length(TestStim)
+                    Stims = [NaN(1,3) TestStim(t)]; % 75% Normal Trials, 25% Test Trials
+                    Stims = Stims(randperm(length(Stims)));
+                    TestMatrix = [TestMatrix Stims]; %#ok<AGROW>
+                end
+
             end
         end
 
@@ -271,8 +280,8 @@ try
                 Log.Trialtype(Trial) = 1;                                   % 2 Go      Figure grey, Background grating    
             elseif Log.TestStim(Trial) == 3 || Log.TestStim(Trial) == 4     % 3 NoGo    Figure grating, Background grey
                 Log.Trialtype(Trial) = 0;                                   % 4 NoGo    Figure grey, Background grating
-            elseif Log.TestStim(Trial) == 5 || Log.TestStim(Trial) == 6     % 5 random reward Go Fig + NoGo Bg 
-                Log.Trialtype(Trial) = randi([0 1], 1);                     % 6 random reward NoGo Fig + Go Bg
+            elseif Log.TestStim(Trial) == 5 || Log.TestStim(Trial) == 6     % 5 reward Go Fig + NoGo Bg 
+                Log.Trialtype(Trial) = 1;                                   % 6 reward NoGo Fig + Go Bg
             else 
                 Log.Trialtype(Trial) = TrialMatrix(1);                      % NaN       is a normal trial, just take next normal trial from trial matrix
                 TrialMatrix(1) = [];
