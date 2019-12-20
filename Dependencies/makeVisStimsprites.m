@@ -66,3 +66,17 @@ end
 % 20       (4 Phases)
 % 21
 % 22
+
+% 100 extra one for human, a green tick
+cgmakesprite(100,Par.Screenx,Par.Screeny,Par.grey)
+cgsetsprite(100)
+cgpencol(0,1,0)
+cgpolygon([-100 0 100 0 ], [0 -150 100 -100])
+cgsetsprite(0)
+cgmakesprite(101,Par.Screenx,Par.Screeny,Par.grey)
+cgsetsprite(101)
+cgpencol(1,0,0)
+cgfont('Arial',200)
+cgtext('x', 0,0)
+cgsetsprite(0)
+        
