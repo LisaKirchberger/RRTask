@@ -3,14 +3,7 @@ clear all %#ok<CLALL>
 clc
 
 try
-    %% Structure of this task:
-    % Mouse is head fixed and sits in a tube setup or runs (running is not relevant for task) on a treadmill
-    % On Go Trials the mouse is presented with a figure ground stimulus with certain orientations for figure and ground (needs to be set for
-    % each mouse in MouseParams before start of training. On NoGo Trials a figure-ground stimulus with different orientations appears that is
-    % not rewarded
-    % On Go Trials mouse has to lick to get a reward
-    % On No Go Trials there is no reward, but a 5s timeout if the mouse licks
-           
+
     addpath(genpath(fullfile(pwd,'Dependencies')))
     addpath(genpath(fullfile(pwd,'Analysis')))
     
@@ -97,12 +90,15 @@ try
     MissCounter = 0;
     FACounter = 0;
     CRCounter = 0;
+    
+    % start with Phase 2 (Testing with all Test Stimuli is Phase 5)
     currPhase = 2;
+    TestStimCounter = 0;
     
     %% Main Script
 
     
-    while ~stopaftertrial
+    while TestStimCounter < 400
         
         %% Initialize some variables
         
@@ -361,7 +357,7 @@ try
         end
         
         
-        %% update the d prime plot
+        %% update the current d prime, if this is Phase 2 and dprime is above 2 move to Phase 5
         Par.d_prime_windowsize = 20;
         if Trial <= Par.d_prime_windowsize
             wantedTrials = isnan(Log.TestStim);
@@ -373,53 +369,21 @@ try
             Log.criterion(Trial) = CalcCriterion(Log.Reactionidx(wantedTrials));
         end
         
-        plot(perfplot, Log.dprime)
-        hold(perfplot, 'on')
-        plot(perfplot, 1:Trial,zeros(Trial,1),'r')
-        plot(perfplot, 1:Trial,repmat(1.5,Trial,1),'g')
-        title(perfplot, 'Performance')
-        ylabel(perfplot, 'd prime')
-        xlabel(perfplot, 'Trials')
-        axis(perfplot, [1 inf min([min(Log.dprime) -0.5]) max([max(Log.dprime) 2])])
-        box(perfplot, 'off')
-        drawnow
-        hold(perfplot, 'off')
-        
-        
+        if Log.TaskPhase(Trial) == 2 && Log.dprime(Trial) > 2
+            currPhase = 5;
+        end
+
         %% save
         
-        save([Par.Save_Location '\' Log.Logfile_name] , 'Log', 'Par', 'RunningTimecourseAVG')
-        % save in imaging folder in the format Enny uses if in the WF setup
-        if strcmp(Log.Setup, 'WFsetup')
-            save([Par.Save_Location2 '\' Log.Mouse Log.Expnum] , 'Log', 'Par', 'RunningTimecourseAVG')
-        end
+        save([Par.Save_Location '\' Log.Logfile_name] , 'Log', 'Par')
 
         
         %% check for stopaftertrial
         
-        if stopaftertrial == 1
-            dlgTitle    = 'User Question';
-            dlgQuestion = 'Do you want to Pause or Exit?';
-            choicePauseExit = questdlg(dlgQuestion,dlgTitle,'Pause','Exit', 'Pause'); %Pause = default
-            switch choicePauseExit
-                case 'Pause'
-                    Continue = 0;
-                    while Continue == 0
-                        dlgTitle    = 'User Question';
-                        dlgQuestion = 'Do you want to Continue?';
-                        choiceContinue = questdlg(dlgQuestion,dlgTitle,'Yes','No', 'Yes'); %Pause = default
-                        switch choiceContinue
-                            case 'Yes'
-                                Continue = 1;
-                            case 'No'
-                                Continue = 0;
-                        end
-                    end
-                    stopaftertrial = 0;
-                case 'Exit'
-                    stopaftertrial = 1;
-            end
+        if Log.TaskPhase(Trial) == 5
+            TestStimCounter = TestStimCounter + 1;
         end
+        
     end
     
     % Session has finished, turn the Log file into a Table and save it with the rest
@@ -450,54 +414,3 @@ end
 
 cogstd('sPriority','normal')
 cgshut
-
-if strcmp(get(Par.sport, 'status'), 'open')
-    fclose(Par.sport);
-end
-if Par.RecordRunning
-    fclose(Par.running_port);
-end
-
-
-
-%% Arduino commands
-
-% start Arduino
-% Par.sport = serial('com3');
-% set(Par.sport,'InputBufferSize', 10240)
-% if strcmp(get(Par.sport, 'status'), 'closed')
-%     fopen(Par.sport)
-% end
-% set(Par.sport, 'baudrate', 250000);
-% set(Par.sport, 'timeout', 0.1);
-% sendtoard(Par.sport, 'ID');
-
-
-
-% Reward 1 is pin 10 digitalWrite(10, LOW) closes it and digitalWrite(10,HIGH) opens it
-% Reward 2 is pin 11 same as above
-
-%fprintf(Par.sport, 'IF');   % returns 'D' and sets the treshold to the value you send
-%fprintf(Par.sport, 'IM');   % returns 'D' and sets easymode to the value you send
-%fprintf(Par.sport, 'IL');   % returns 'D' and sets Rewardtime1 to the value you send, is the right port
-%fprintf(Par.sport, 'IR');   % returns 'D' and sets Rewardtime2 to the value you send, is the left port
-%fprintf(Par.sport, 'IO');   % Motor
-%fprintf(Par.sport, 'IT');   % returns 'D' and sets Timeout to the value you send? what is timeout, I think it's the Graceperiod or the passive delay
-
-%fprintf(Par.sport, 'IS');   % starts the trial, Trialtime, passive and wentthrough, nothing gets returned
-%fprintf(Par.sport, 'IE 1'): % returns 'D' and sets Enable to 1 (right)
-%fprintf(Par.sport, 'IE 2'); % returns 'D' and sets Enable to 2 (left)
-%fprintf(Par.sport, 'IA');   % returns 'R' and returns the Trialtime, so basically the RT
-%fprintf(Par.sport, 'IC');   % returns 'D' followed by the values of the two thresholds (first 1 then 2)
-%fprintf(Par.sport, 'IP');   % returns 'D' and gives a passive if the time is greater than timeout
-%fprintf(Par.sport, 'ID');   % returns 'D', sets Enable to 0 and closes both valves
-
-% if Par.sport.BytesAvailable
-%     while ~strcmp(I, 'O') && Par.sport.BytesAvailable
-%         I = fscanf(Par.sport, '%s');
-%         if strcmp(I, 'O')
-%             break
-%         end
-%     end
-% end
-%
