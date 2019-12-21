@@ -14,6 +14,8 @@ OversizedGrating =  OversizedGrating .* diff([Par.blacklum Par.whitelum]) ; % se
 OversizedGrating =  OversizedGrating + Par.blacklum; %#ok<NASGU> % shift range of OversizedGrating to minimal luminance
 OversizedGratingRGB = eval([gammaconversion '(OversizedGrating,''lum2rgb'')']);
 
+if ~(isfield(Par,'morphingOn') && Par.morphingOn ==0)
+
 %% Morph the grating, convert Cartesian to spherical coordinates
 % In image space, x and y are width and height of monitor and z is the distance from the eye. I want Theta to correspond to azimuth and Phi to
 % correspond to elevation, but these are measured from the x-axis and x-y plane, respectively. So I need to exchange the axes prior to
@@ -35,7 +37,13 @@ anglesOversizedY = -(rangeOversizedY/2-Par.RadPerPix) : Par.RadPerPix : rangeOve
 
 [xang, yang] = meshgrid(anglesOversizedX, anglesOversizedY*-1);
 morphedGrating = interp2(xang, yang, OversizedGratingRGB, sphr_Vert, sphr_Horiz);
-
+else
+    % Put in correct dimensions
+    morphedGrating = (OversizedGratingRGB(ceil((size(OversizedGratingRGB,1)-Par.Screeny)./2):size(OversizedGratingRGB,1)-ceil((size(OversizedGratingRGB,1)-Par.Screeny)./2),...
+        ceil((size(OversizedGratingRGB,2)-Par.Screenx)./2):size(OversizedGratingRGB,2)-ceil((size(OversizedGratingRGB,1)-Par.Screenx)./2)));    
+    
+    
+end
 %% Create a morphed red circle if this is the figure texture
 
 if RedCircle == 1
@@ -45,8 +53,16 @@ if RedCircle == 1
     OversizedEcc = hypot(xe-Par.FigX,ye-Par.FigY); % convert to Eccentricity
     OversizedCircle = zeros(size(xe));
     OversizedCircle(OversizedEcc<Par.FigSize/2) = 1;
-    % Morph it
-    morphedCircle = logical(interp2(xang, yang, OversizedCircle, sphr_Vert, sphr_Horiz));
+    
+    if ~(isfield(Par,'morphingOn') && Par.morphingOn ==0)
+        % Morph it
+        morphedCircle = logical(interp2(xang, yang, OversizedCircle, sphr_Vert, sphr_Horiz));
+    else        
+        % Put in correct dimensions
+        morphedCircle = logical(OversizedCircle(ceil((size(OversizedCircle,1)-Par.Screeny)./2):size(OversizedCircle,1)-ceil((size(OversizedCircle,1)-Par.Screeny)./2),...
+            ceil((size(OversizedCircle,2)-Par.Screenx)./2):size(OversizedCircle,2)-ceil((size(OversizedCircle,1)-Par.Screenx)./2)));
+    end
+        
     % convert to cogent structure
     morphedGrating_R = morphedGrating;
     morphedGrating_R(morphedCircle) = 1;

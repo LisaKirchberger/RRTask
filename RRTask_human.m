@@ -1,21 +1,40 @@
+function RRTask_human
 %%
 clear all %#ok<CLALL>
 clc
 
-try
+%% Text for participants
+text4participantsFlip1 = {'Dear Participant, to validate research in mice, we ask you to play the mouse vision game.', ...
+    'Sehr geehrter Teilnehmer, um die Forschung an Mäusen zu validieren, bitten wir Sie, das Maus-Vision-Spiel zu spielen.', ...
+    'Geachte deelnemer, om onderzoek bij muizen te valideren, vragen wij u het muizen-visie-spel te spelen'};
 
+text4participantsFlip2 = {'It will maximally take 20 minutes. {Press Enter to continue}', 'Es dauert maximal 20 Minuten. {Drück Enter um fortzufahren}' ,  'Het duurt maximaal 20 minuten. {Druk op Enter om door te gaan}'};
+
+text4participantsFlip3 = {'The participant with the best score, besides eternal fame, receives a bottle of wine or beer and a box of chocolates.' ...
+    'Der Teilnehmer mit der besten Punktzahl bekommt, neben dem ewigen Ruhm, eine Flasche Wein oder Bier und Schokola.', ...
+    'De deelnemer met de beste score ontvangt, naast eeuwige roem, een fles wijn of bier en een doosje chocola. '};
+
+text4participantsFlip4 = {'If multiple participants have the same score, the winner is the one with the fastest time. {Press Enter to continue}','Wenn mehrere Teilnehmer die gleiche Punktzahl haben, ist der Gewinner derjenige mit der schnellsten Zeit.  {Drück Enter um fortzufahren}','Als meerdere deelnemers dezelfde score hebben, is de winnaar degene met de snelste tijd. {Druk op Enter om door te gaan}'};
+
+text4participantsFlip5 = {'Good luck! {Press Space to start, and also to play}', 'Viel Glück! {Drücken Sie die Leertaste, um zu starten und zu spielen}', 'Succes! {Druk op spatie om te beginnen en ook om te spelen}'};
+
+text4participantsFlip6 = {'You will no longer receive feedback, but continue as you learned {Press Enter to continue}','Sie erhalten kein Feedback mehr, aber fahr fort wie gelernt {Drück Enter um fortzufahren}','Je krijgt nu geen feedback meer, maar ga door zoals je geleerd hebt {Druk op Enter om door te gaan}'};
+
+try    
     addpath(genpath(fullfile(pwd,'Dependencies')))
     addpath(genpath(fullfile(pwd,'Analysis')))
     
     global Par Log %#ok<TLEV>
     
     %% Experiment Parameters
-    prompt = {'Name', 'Exp Nr', 'Date'};
-    def = {'Name', '1', datestr(datenum(date), 'yyyymmdd')};
+    prompt = {'Name','Distance to computer screen in cm','Experiment Number','Date','Gender (M/F/N)','Age','Nationality'};
+    def = {'Name','60', '1',datestr(datenum(date), 'yyyymmdd'),'','',''};
     answer = inputdlg(prompt,'Please enter parameters',1,def);
+    SpacePress = 0;
+    ESC = 0;
     
     Log.Task = 'RRTask_human';
-    Log.Mouse = answer{1};
+    Log.Name = answer{1};
     
     Orientations = [0 90 45 135];
     pick = randi(4,1);
@@ -25,18 +44,21 @@ try
     Par.GoBgOrient = newOris(2);
     Par.NoGoFigOrient = newOris(3);
     Par.NoGoBgOrient = newOris(4);
-    
+    Par.ScreenDistance = str2num(answer{2});      % from human horizontally to the Screen
+
     Par.FigX = 0;
     Par.FigY = 0;
     
-    Log.Expnum = answer{2};
-    Log.Date = answer{3};
-    Log.Logfile_name = [Log.Mouse, '_', Log.Date, '_B', Log.Expnum];
-
-    Log.Setup = 'Laptop';
-
-    %% Saving location of Logfile 
+    Log.Expnum = answer{3};
+    Log.Date = answer{4};
+    Log.Gender = answer{5};
+    Log.Age = answer{6};
+    Log.Nationality = answer{7};
+    Log.Logfile_name = [Log.Name, '_', Log.Date, '_B', Log.Expnum];
     
+    Log.Setup = 'Laptop';
+    
+    %% Saving location of Logfile    
     % Saving Location
     Par.Save_Location = pwd;
     
@@ -51,38 +73,122 @@ try
             case 'Change'
                 answerSess = inputdlg('Session','Please enter proper session',1);
                 Log.Expnum = answerSess{1};
-                Log.Logfile_name = [Log.Mouse, '_', Log.Date, '_B', Log.Expnum];
+                Log.Logfile_name = [Log.Name, '_', Log.Date, '_B', Log.Expnum];
             case 'Exit'
                 keyboard
         end
     end
-    cd(Matlabpath)
-   
+    %     cd(Matlabpath)
+    
     
     %% Read in Setup specific parameter file
-    run Params_Debug
-
-    %% open Cogent
-
+    run Params_Human
+    
+    %% open Cogent    
     cgloadlib
     cgshut
     %Screen
-    cgopen(Par.Screenx, Par.Screeny, 32,Par.Refresh , Par.ScreenID) 
+    cgopen(Par.Screenx, Par.Screeny, 32,Par.Refresh , Par.ScreenID)
     cogstd('sPriority','high')
     for i = 1:120
         cgflip(Par.grey)
     end
     %Sound
-    cgsound('open',Par.Aud_nchannels,Par.Aud_nbits,Par.Aud_sampfrequency,-50,1) % -50db volume attenuation, sound device 0 (default sound device)
+    %     cgsound('open',Par.Aud_nchannels,Par.Aud_nbits,Par.Aud_sampfrequency,-50,1) % -50db volume attenuation, sound device 0 (default sound device)
     
+    %% Show Text Slides
+    cgfont('Arial',25)
+    cgpencol(1,0,0)
     
-     %% make sprites of VR and all visual stimuli
+    cgtext(text4participantsFlip1{1},0,200)
+    cgtext(text4participantsFlip1{2},0,0)
+    cgtext(text4participantsFlip1{3},0,-200)
+          
+    cgflip(Par.grey) 
     
-    run makeVisStimsprites
+    texttimer = tic;
     
+    %% make sprites of VR and all visual stimuli in the mean time
+    run makeVisStimsprites    
+        
+    cgflip(Par.grey)
+        
+    cgfont('Arial',25)
+    cgpencol(1,0,0)
+    cgtext(text4participantsFlip1{1},0,200)
+    cgtext(text4participantsFlip1{2},0,0)
+    cgtext(text4participantsFlip1{3},0,-200)
+    
+    cgtext(text4participantsFlip2{1},0,150)
+    cgtext(text4participantsFlip2{2},0,-50)
+    cgtext(text4participantsFlip2{3},0,-250)
+    
+    cgflip(Par.grey)
+    %% Wait for button press to be on screen long enough
+    while ~SpacePress
+        [kd,kp] = cgkeymap;
+        if length(find(kp)) >= 1
+            if find(kp) == 28 %Enter
+                SpacePress = 1;
+                Log.DoneText1 = toc(texttimer);
+            end
+        end
+    end
+    SpacePress = 0;
+    cgflip(Par.grey)
 
-    %% make the GUI & initialize variables
+    %% Remaining text
+    cgfont('Arial',25)
+    cgpencol(1,0,0)
+    cgtext(text4participantsFlip3{1},0,200)
+    cgtext(text4participantsFlip3{2},0,0)
+    cgtext(text4participantsFlip3{3},0,-200)
+    cgflip(Par.grey)
 
+    
+    % Wait for button press to be on screen long enough
+      while ~SpacePress
+        [kd,kp] = cgkeymap;
+        if length(find(kp)) >= 1
+            if find(kp) == 28 %Enter
+                SpacePress = 1;
+                Log.DoneText2 = toc(texttimer);
+            end
+        end
+    end
+    cgflip(Par.grey)
+    SpacePress = 0;
+
+    cgfont('Arial',25)
+    cgpencol(1,0,0)
+    cgtext(text4participantsFlip4{1},0,200)
+    cgtext(text4participantsFlip4{2},0,0)
+    cgtext(text4participantsFlip4{3},0,-200)
+    cgflip(Par.grey)
+
+    % Wait for button press to be on screen long enough
+      while ~SpacePress
+        [kd,kp] = cgkeymap;
+        if length(find(kp)) >= 1
+            if find(kp) == 28 %Enter
+                SpacePress = 1;
+                Log.DoneText3 = toc(texttimer);
+            end
+        end
+    end
+    
+    cgflip(Par.grey)
+    SpacePress = 0;
+ 
+    cgfont('Arial',25)
+    cgpencol(1,0,0)
+    cgtext(text4participantsFlip5{1},0,200)
+    cgtext(text4participantsFlip5{2},0,0)
+    cgtext(text4participantsFlip5{3},0,-200)
+    cgflip(Par.grey)
+
+        
+    %% make the GUI & initialize variables    
     TrialMatrix = [];
     TestMatrix = [];
     Trial = 0;
@@ -95,38 +201,72 @@ try
     currPhase = 2;
     TestStimCounter = 0;
     
-    %% Main Script
+    %% Wait for button press to be on screen long enough
+    while ~SpacePress
+        [kd,kp] = cgkeymap;
+        if length(find(kp)) >= 1
+            if find(kp) == 57
+                SpacePress = 1;
+                Log.DoneText4 = toc(texttimer);
+            end
+        end
+    end
+    cgflip(Par.grey)    
+    SpacePress = 0;
 
-    
-    while TestStimCounter < 400
+    StartParadigmClock = tic;
+     %% Main Script
+    while TestStimCounter < 400 && ~ESC
         
+     
+%         fprintf('Trial %d \n', Trial)
+        
+        %% Change phase if necessary        
+        if Trial>50 && Log.TaskPhase(Trial) == 2 && sum(Log.dprime(Trial-10:Trial-1) > 2) == 10 %at least for 10 trials dprime>2
+            currPhase = 5;
+            %inform participant no feedback is given
+            cgfont('Arial',25)
+            cgpencol(1,0,0)
+            cgtext(text4participantsFlip6{1},0,200)
+            cgtext(text4participantsFlip6{2},0,0)
+            cgtext(text4participantsFlip6{3},0,-200)
+            cgflip(Par.grey)
+            
+            % Wait for button press to be on screen long enough
+            while ~SpacePress
+                [kd,kp] = cgkeymap;
+                if length(find(kp)) >= 1
+                    if find(kp) == 28 || find(kp) == 57%Enter
+                        SpacePress = 1;
+                        Log.DoneText5 = toc(texttimer);
+                    end
+                end
+            end
+            cgflip(Par.grey)
+        end
+
         %% Initialize some variables
-        
         Trial = Trial + 1;
-        fprintf('Trial %d \n', Trial)
         ButtonVec = [];
         Reaction = [];
         
         % Initialization time timer (subtract from ITI):
         InitializeTimer = tic;
         
-        %% Read in Parameters from the GUI
-        
+        %% Read in Parameters from the GUI        
         Log.GoTrialProportion(Trial) = 50;
         Log.Trial(Trial) = Trial;
         Log.VisDuration(Trial) = 0.5;
-        Log.TaskPhase(Trial) = currPhase;
+        Log.TaskPhase(Trial) = currPhase;        
         
-
-        %% Make a Trial Matrix with miniblocks if TrialMatrix is empty
-        
-         if isempty(TrialMatrix)
+        %% Make a Trial Matrix with miniblocks if TrialMatrix is empty        
+        if isempty(TrialMatrix)
             MiniLength = 4;
             Miniblock = zeros(MiniLength,1);
             Miniblock(1:round(Log.GoTrialProportion(Trial)/(100/MiniLength)))= 1;
             TrialMatrix = Miniblock(randperm(MiniLength));
         end
-
+        
         if isempty(TestMatrix) && Log.TaskPhase(Trial) >= 3
             if Log.TaskPhase(Trial) == 3
                 TestStim = 1:4;
@@ -154,10 +294,9 @@ try
                 end
             end
         end
-
         
-        %% Set the Currtrial
         
+        %% Set the Currtrial        
         if Log.TaskPhase(Trial) < 3
             Log.Trialtype(Trial) = TrialMatrix(1);
             TrialMatrix(1) = [];
@@ -165,30 +304,27 @@ try
             
         else                                                                % Testphase
             Log.TestStim(Trial) = TestMatrix(1);                            % There are 4 test stimuli (for now) which are:
-            TestMatrix(1) = [];                                             
-            if Log.TestStim(Trial) == 1 || Log.TestStim(Trial) == 2         % 1 Go      Figure grating, Background grey                  
-                Log.Trialtype(Trial) = 1;                                   % 2 Go      Figure grey, Background grating    
+            TestMatrix(1) = [];
+            if Log.TestStim(Trial) == 1 || Log.TestStim(Trial) == 2         % 1 Go      Figure grating, Background grey
+                Log.Trialtype(Trial) = 1;                                   % 2 Go      Figure grey, Background grating
             elseif Log.TestStim(Trial) == 3 || Log.TestStim(Trial) == 4     % 3 NoGo    Figure grating, Background grey
                 Log.Trialtype(Trial) = 0;                                   % 4 NoGo    Figure grey, Background grating
-            elseif Log.TestStim(Trial) == 5 || Log.TestStim(Trial) == 6     % 5 random reward Go Fig + NoGo Bg 
+            elseif Log.TestStim(Trial) == 5 || Log.TestStim(Trial) == 6     % 5 random reward Go Fig + NoGo Bg
                 Log.Trialtype(Trial) = 1;                                   % 6 random reward NoGo Fig + Go Bg
-            else 
+            else
                 Log.Trialtype(Trial) = TrialMatrix(1);                      % NaN       is a normal trial, just take next normal trial from trial matrix
                 TrialMatrix(1) = [];
             end
-       
+            
         end
-  
         
-        %% check for communication from the serial port
-
-        RunningTimer = tic; %use this later to subtract difference to stimulus onset
+        
+        %% check for communication from the serial port        
+        RunningTimer = tic; %use this later to subtract difference to stimulus onset    
         checkButton
         
-        %% make the Visual Stimulus
-        
-            
-       if Log.TaskPhase(Trial) == 1      % Black/White Figure and Black/White Background
+        %% make the Visual Stimulus        
+        if Log.TaskPhase(Trial) == 1      % Black/White Figure and Black/White Background
             if Log.Trialtype(Trial) == 1
                 Log.Fgsprite(Trial) = 3; % White Figure
                 Log.Bgsprite(Trial) = 2; % Black Background
@@ -233,13 +369,11 @@ try
         
         %% look at how long initialization took and subtract from ITI
         subtract_Timer = toc(InitializeTimer); clear InitializeTimer
-        
-        
-        %% ITI and Cleanbaseline 
-        
+                
+        %% ITI and Cleanbaseline        
         Log.randITI(Trial) = Par.random_ITI * rand;
         Log.ITI(Trial) = Par.ITI;
-
+        
         % pause for the fixed ITI minus the time that has passed during stimulus making
         fixedITITimer = tic;
         checkedOnce = 0;
@@ -248,26 +382,25 @@ try
             checkedOnce = 1;
         end
         clear fixedITITimer
- 
+        
         % Random ITI minus once the CleanBaseline Time
         checkedOnce = 0;
         randITITimer = tic;
-        while toc(randITITimer) <  (Log.randITI(Trial)) || ~checkedOnce 
+        while toc(randITITimer) <  (Log.randITI(Trial)) || ~checkedOnce
             checkButton
             checkedOnce = 1;
         end
         clear randITITimer
-
         
         
-        %% Display the Visual Go or NoGo Stimulus
-
+        
+        %% Display the Visual Go or NoGo Stimulus        
         checkButton
         
         % Send Start signal to Arduino and start the Trial
         RunningDiff = toc(RunningTimer);
         
-        % Show the Visual Stimulus   
+        % Show the Visual Stimulus
         cgdrawsprite(Log.Fgsprite(Trial),0,0)
         cgdrawsprite(Log.Bgsprite(Trial),0,0)
         VisStatus = 1;
@@ -278,30 +411,34 @@ try
         
         preButtonVec = ButtonVec;
         TrialOver = 0;
-
+        
         while toc(StimOnset) < Log.VisDuration(Trial) && ~TrialOver
-
+            
             checkButton
-
+            
             if ~isequal(preButtonVec, ButtonVec)
                 if Log.Trialtype(Trial) == 1
                     Reaction = '1';
                     RT = toc(StimOnset);
-                    % show a correct sprite
-                    cgdrawsprite(100,0,0)
-                    VisStatus = 0;
-                    cgflip(Par.grey)
+                    if Log.TaskPhase(Trial)<=3
+                        % show a correct sprite
+                        cgdrawsprite(100,0,0)
+                        VisStatus = 0;
+                        cgflip(Par.grey)
+                    end
                     pause(0.3)
                     TrialOver = 1;
                 else
                     Reaction = '0';
                     RT = toc(StimOnset);
-                    % show the cross sprite
-                    cgdrawsprite(101,0,0)
-                    VisStatus = 0;
-                    cgflip(Par.grey)
-                    % 5s timeout
-                    pause(5)
+                    if Log.TaskPhase(Trial)<=3
+                        % show the cross sprite
+                        cgdrawsprite(101,0,0)
+                        VisStatus = 0;
+                        cgflip(Par.grey)
+                    end
+                    % timeout
+                    pause(Par.FA_Timeout)
                     TrialOver = 1;
                 end
             end
@@ -311,27 +448,24 @@ try
                 cgflip(Par.grey)
                 VisStatus = 0;
             end
-
-        end
-        
+            
+        end       
         
         % end of trial
         Log.Stimdur(Trial) = toc(StimOnset);
         
         % Check that everything is off
-        if VisStatus == 1 || LickEnabled == 1
-            cgflip(Par.grey)                % flips up a grey screen         
+        if VisStatus == 1 
+            cgflip(Par.grey)                % flips up a grey screen
         end
-
-        checkButton
-
+        
+        checkButton        
         
         % save the Button press Data in the Log file
         Log.ButtonVec{Trial} = ButtonVec - RunningDiff;
         
         
-        %% Process response
-        
+        %% Process response        
         if strcmp(Reaction, '1')
             Log.Reaction{Trial} = 'Hit';
             Log.Reactionidx(Trial) = 1;
@@ -368,23 +502,19 @@ try
             Log.dprime(Trial) = Calcdprime(Log.Reactionidx(wantedTrials));
             Log.criterion(Trial) = CalcCriterion(Log.Reactionidx(wantedTrials));
         end
+     
         
-        if Log.TaskPhase(Trial) == 2 && Log.dprime(Trial) > 2
-            currPhase = 5;
-        end
-
-        %% save
-        
+        %% save        
         save([Par.Save_Location '\' Log.Logfile_name] , 'Log', 'Par')
-
         
-        %% check for stopaftertrial
         
+        %% check for stopaftertrial        
         if Log.TaskPhase(Trial) == 5
             TestStimCounter = TestStimCounter + 1;
-        end
-        
+        end        
     end
+    
+    Log.TotalTime = toc(StartParadigmClock);
     
     % Session has finished, turn the Log file into a Table and save it with the rest
     
@@ -392,7 +522,7 @@ try
     Log_fieldnames = fieldnames(Log);
     for f = 1:length(Log_fieldnames)
         FieldData = getfield(Log, char(Log_fieldnames(f))); %#ok<GFLD>
-        if ischar(FieldData)
+        if ischar(FieldData) || length(FieldData)==1
             FieldData = repmat(FieldData,Trial,1);
         else
             FieldData = FieldData';
@@ -400,8 +530,7 @@ try
         eval([ 'Log_table.' char(Log_fieldnames(f)), '=', 'FieldData', ';'])
     end
     
-    %% save
-
+    %% save    
     save([Par.Save_Location '\' Log.Logfile_name] , 'Log', 'Par', 'Log_table')
     
 catch ME
@@ -410,7 +539,7 @@ catch ME
     
 end
 
-
-
 cogstd('sPriority','normal')
 cgshut
+
+return
