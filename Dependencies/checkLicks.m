@@ -1,34 +1,68 @@
 % checkLicks
 
-% this is bit confusing, but this one should be used with the arduino
-% script GoNoGoLick
+% this is bit confusing but this script should be used with the LickSensor
+% Arduino script
 
+I = '';
 attempts = 0;
+Lick = 0;
 set(Gui.Lickbox,'Background',[1 1 1])
-
 
 while Par.sport.BytesAvailable
     
-    arduinoMessage = fscanf(Par.sport, '%s');
-    switch arduinoMessage
-        case 'L'                                    % There has been a Lick
-            Lick = toc(RunningTimer);
-            LickVec = [LickVec, Lick]; %#ok<AGROW>
-            set(Gui.Lickbox,'Background',[0 0 0])
+    if Par.sport.BytesAvailable
+        while ~strcmp(I, 'O') && Par.sport.BytesAvailable
+            I = fscanf(Par.sport, '%s');
+            if strcmp(I, 'O') 
+                break
+            end
+        end
+        pause(0.001)
+        
+        Inext = fscanf(Par.sport, '%s');
+        switch Inext
+            case 'X' % regular response
+                if Par.sport.BytesAvailable
+                    Reaction = fscanf(Par.sport, '%s');
+                end
+                if Par.sport.BytesAvailable
+                    RT = fscanf(Par.sport, '%s');
+                end
+                if Par.sport.BytesAvailable
+                    passfirst = str2double(fscanf(Par.sport, '%s'));
+                end
+                if Par.sport.BytesAvailable
+                    ThresValue = str2double(fscanf(Par.sport, '%s'));
+                    set(Gui.LickValue, 'string', num2str(ThresValue));
+                end
+                if Par.sport.BytesAvailable
+                    thres1 = fscanf(Par.sport, '%s');
+                    disp(['R ' thres1])
+                end
+                if Par.sport.BytesAvailable
+                    thres2 = fscanf(Par.sport, '%s');
+                end
             
-        case 'X'                                    % There has been a Response
-            Reaction = fscanf(Par.sport, '%s');     % H = Hit or F = False Alarm
-            RT = fscanf(Par.sport, '%s');
-            ThresValue = str2double(fscanf(Par.sport, '%s'));
-            set(Gui.LickValue, 'string', num2str(ThresValue));
+            case 'Y' % all licks right (is what we use)
+                if Par.sport.BytesAvailable
+                    Lick = str2num(fscanf(Par.sport, '%s'));
+                end
+                LickVec = [LickVec, Lick];
+                rlick = 1;
+                set(Gui.Lickbox,'Background',[0 0 0])
+                
+            case 'Q' %Timing for opening rewardports
+                if Par.sport.BytesAvailable
+                    ValveOpenTime = ValveOpenTime+str2num(fscanf(Par.sport, '%s'));
+                end
+        end
+        pause(0.001)
     end
-    pause(0.001)
-    
     attempts = attempts + 1;
     if attempts > 50
         warning('Tried reading from serial port 50 times, still getting data. Something is wrong, stopping for now.')
         break
     end
+    
 end
-
 drawnow

@@ -11,8 +11,8 @@ try
     % On NoGo Trials a figure-ground stimulus with different orientation(s) appears that is not rewarded, if the mice lick on No-Go trials a white
     % screen will appear and only disappears after a certain running distance
     
-    % need Arduino script: GoNoGoLick (!!!)
-    correctArduino = questdlg('Did you upload the Arduino Script called GoNoGoLick?','Attention','Yes','No', 'Yes');
+    % need Arduino script: LickSensor_vs2 (!!!)
+    correctArduino = questdlg('Did you upload the Arduino Script called LickSensor_vs2?','Attention','Yes','No', 'Yes');
     if strcmp(correctArduino, 'No')
         disp('upload correct Arduino Script and then press any key on keyboard to continue')
         pause
@@ -394,7 +394,7 @@ try
             end
             
             % Check the licks
-            checkLicks
+            checkLicks_VR
             
         end
 
@@ -404,7 +404,7 @@ try
             dasbit(Par.Recport, 1) % starts recording
             WFtimer = tic;
             while toc(WFtimer) < Par.PreStimTime
-                checkLicks
+                checkLicks_VR
                 checkRunning
                 pause(0.002)
             end
@@ -459,7 +459,7 @@ try
             end
             
             % Check the Licks/Response
-            checkLicks
+            checkLicks_VR
             
             % Enable the Lick Spout (once)
             if toc(StimOnset) > Log.GraceDuration && Enable
@@ -495,7 +495,7 @@ try
         % Stop recording and turn camera off if this is in the WF setup
         if strcmp(Log.Setup, 'WFsetup')
             while toc(WFtimer) < Par.PostStimTime
-                checkLicks
+                checkLicks_VR
                 checkRunning
                 pause(0.002)
             end
@@ -517,7 +517,7 @@ try
                     TotalSpriteCounter = TotalSpriteCounter + 1;
                     CurrDistance = 0;
                 end
-                checkLicks
+                checkLicks_VR
             end
             cgflip(Par.grey)
         end

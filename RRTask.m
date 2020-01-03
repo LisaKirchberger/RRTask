@@ -290,7 +290,7 @@ try
 
         RunningTimer = tic; %use this later to subtract difference to stimulus onset
         checkRunning
-        checkforLicks      % only using 'right' port
+        checkLicks      % only using 'right' port
         
         
         %% make the Visual Stimulus
@@ -479,7 +479,7 @@ try
         fixedITITimer = tic;
         checkedOnce = 0;
         while toc(fixedITITimer) < (Log.ITI(Trial)-subtract_Timer) || ~checkedOnce
-            checkforLicks
+            checkLicks
             checkRunning
             checkedOnce = 1;
         end
@@ -493,7 +493,7 @@ try
             tempLickVec = LickVec;
             cleanBaseTimer = tic;
             while toc(cleanBaseTimer) < Log.CleanBaseline(Trial)            
-                checkforLicks
+                checkLicks
                 checkRunning
                 if ~isequal(LickVec, tempLickVec)
                     cleanBaseTimer = tic;
@@ -513,7 +513,7 @@ try
         checkedOnce = 0;
         randITITimer = tic;
         while toc(randITITimer) <  (Log.randITI(Trial) - Log.CleanBaseline(Trial)) || ~checkedOnce 
-            checkforLicks
+            checkLicks
             checkRunning
             checkedOnce = 1;
         end
@@ -528,7 +528,7 @@ try
         
         %% Display the Visual Go or NoGo Stimulus
 
-        checkforLicks
+        checkLicks
         
         % Send Start signal to Arduino and start the Trial
         fprintf(Par.sport, 'IS');   % starts the trial
@@ -559,7 +559,7 @@ try
 
         while toc(StimOnset) < max([Log.TimeToLick(Trial) Log.VisDuration(Trial)])
 
-            checkforLicks
+            checkLicks
             checkRunning
             
             % Enable the Lick spout for this trial
@@ -619,7 +619,7 @@ try
             dasbit(Par.Camport, 0)  % stops camera
         end
 
-        checkforLicks
+        checkLicks
         checkRunning
 
         % get the trialtime from the arduino
@@ -667,7 +667,7 @@ try
             % and give the timeout punishment for FA
             FATimer = tic;
             while toc(FATimer) < Par.FA_Timeout
-                checkforLicks
+                checkLicks
                 checkRunning
             end
             clear FATimer
