@@ -3,7 +3,7 @@
 correctNamesTest = {'Test'};
 correctNames191801 = {};
 correctNames191803 = {};
-correctNames191806 = {'Ariel', 'Bambi', 'Cruella'};
+correctNames191806 = {'Ariel', 'Bambi', 'Cruella', 'D', 'E', 'F'};
 correctNames = [correctNamesTest correctNames191801 correctNames191803 correctNames191806];
 
 % compare with input mouse name
@@ -58,6 +58,27 @@ switch Log.Mouse
         Par.NoGoBgOrient = 45;
         Par.FigX = -30;
         Par.FigY = 0;
+        
+    case 'D' %VR mouse vs2
+        Par.GoFigOrient = 90;
+        Par.GoUniOrient = 135;
+        Par.NoGoFigOrient = 0;
+        Par.NoGoUniOrient = 45;
+        Par.FigSide = 1; %1 is right (+30) 2 is left (-30)
+        
+    case 'E' %VR mouse vs2
+        Par.GoFigOrient = 0;
+        Par.GoUniOrient = 135;
+        Par.NoGoFigOrient = 90;
+        Par.NoGoUniOrient = 45;
+        Par.FigSide = 2; %1 is right (+30) 2 is left (-30)
+        
+    case 'F' %VR mouse vs2
+        Par.GoFigOrient = 135;
+        Par.GoUniOrient = 90;
+        Par.NoGoFigOrient = 45;
+        Par.NoGoUniOrient = 0;
+        Par.FigSide = 1; %1 is right (+30) 2 is left (-30)
         
 end
 

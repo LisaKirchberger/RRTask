@@ -106,10 +106,33 @@ elseif RedCircle == 2
     cogentImage = [cogentImage_RG, cogentImage_RG, cogentImage_B];
 
     
+elseif RedCircle == 3
     
+    %% Create a uniform background with blue square
+
+    Screen = ones(Par.Screeny, Par.Screenx).*Luminance; %#ok<NASGU>
+    ScreenRGB = eval([gammaconversion '(Screen,''lum2rgb'')']); 
+    Square = zeros(Par.Screeny, Par.Screenx);
+    if Par.FigSide == 1 %right
+        Square(:,Par.Screenx/2:end) = 1;
+    else
+        Square(:,1:Par.Screenx/2) = 1;
+    end
+    Square = logical(Square);
+    
+    % convert to cogent structure
+    cogentImage_B = ScreenRGB;
+    cogentImage_B(Square) = 1;
+    cogentImage_RG = ScreenRGB;
+    cogentImage_RG(Square) = 0;
+    cogentImage_B = reshape(cogentImage_B',numel(cogentImage_B),1);
+    cogentImage_RG = reshape(cogentImage_RG',numel(cogentImage_RG),1);
+    cogentImage = [cogentImage_RG, cogentImage_RG, cogentImage_B];
+
+        
 else
     
-    %% Create an normal sized Full Screen
+    %% Create a normal sized Full Screen
     Screen = ones(Par.Screeny, Par.Screenx).*Luminance; %#ok<NASGU>
     ScreenRGB = eval([gammaconversion '(Screen,''lum2rgb'')']); 
     

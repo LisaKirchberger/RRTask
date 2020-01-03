@@ -1,8 +1,6 @@
 % checkLicks_VR
 
-% this is bit confusing, but this one should be used with the arduino
-% script LickSensor_VR
-
+% this is bit confusing, but this script should be used in combination with the arduino script LickSensor_VR
 
 attempts = 0;
 set(Gui.Lickbox,'Background',[1 1 1])

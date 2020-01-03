@@ -6,8 +6,8 @@ try
     %% Structure of this task:
     % Mouse is head fixed and runs on a treadmill
     % to get to the next trial the mouse has to run a certain distance on the treadmill
-    % On Go Trials the mouse is presented with a figure ground stimulus with certain orientations for figure and ground (needs to be set for
-    % each mouse in MouseParams before start of training. If the mouse licks it gets a reward
+    % On Go Trials the mouse is presented with a split screen stimulus with a phase defined figure on one side stimulus with certain orientations
+    % for figure and ground (needs to be set for each mouse in MouseParams before start of training. If the mouse licks it gets a reward
     % On NoGo Trials a figure-ground stimulus with different orientation(s) appears that is not rewarded, if the mice lick on No-Go trials a white
     % screen will appear and only disappears after a certain running distance
     
@@ -21,7 +21,6 @@ try
     addpath(genpath(fullfile(pwd,'Dependencies')))
     addpath(genpath(fullfile(pwd,'Analysis')))
     
-    addpath('Dependencies')
     global Par Log %#ok<TLEV>
     
     %% Experiment Parameters
@@ -147,7 +146,7 @@ try
     
     %% make sprites of VR and all visual stimuli
     
-    run makeVisStimsprites
+    run makeVisStimsprites_vs2
     run makeVRsprites
     
     
@@ -294,43 +293,60 @@ try
         
         if Log.TaskPhase(Trial) == 1      % Black/White Figure and Black/White Background
             if Log.Trialtype(Trial) == 1
-                Log.Fgsprite(Trial) = 3; % White Figure
-                Log.Bgsprite(Trial) = 2; % Black Background
+                Log.Figsprite1(Trial) = 1;  % Grey Fig1
+                Log.Figsprite2(Trial) = 4;  % Black Fig2
+                Log.Unisprite(Trial) = 7;   % White Uniform half
             else
-                Log.Fgsprite(Trial) = 1; % Black Figure
-                Log.Bgsprite(Trial) = 4; % White Background
+                Log.Figsprite1(Trial) = 1;  % Grey Fig1
+                Log.Figsprite2(Trial) = 6;  % White Fig2
+                Log.Unisprite(Trial) = 5;   % Black Uniform half
                 Log.Trialtype(Trial) = 1;
             end
             
-        elseif Log.TaskPhase(Trial) == 2 || isnan(Log.TestStim(Trial))    % Go and NoGo Figure-Ground stimuli
+        elseif Log.TaskPhase(Trial) == 2 || isnan(Log.TestStim(Trial))    % Go and NoGo Split Screen Stimuli
             if Log.Trialtype(Trial) == 1
-                Log.Fgsprite(Trial) = 6+randi(4,1);      % GoFigOri in 1 of 4 Phases (7-10)
-                Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
+                FigPhasePick = randi(4,1);
+                Log.Figsprite1(Trial) = 7+FigPhasePick;                     % Fig1 GoFigOri in 1 of 4 Phases (8-11)
+                Log.Figsprite2(Trial) = 11+CorrespPhase(FigPhasePick);      % Fig2 GoFigOri phase offset pi, (12-15)  
+                Log.Unisprite(Trial) = 15+randi(4,1);                       % Uni  GoUniOri in 1 of 4 Phases (16-19)
             else
-                Log.Fgsprite(Trial) = 14+randi(4,1);     % NoGoFigOri in 1 of 4 Phases (15-18)
-                Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                FigPhasePick = randi(4,1);
+                Log.Figsprite1(Trial) = 19+FigPhasePick;                    % Fig1 NoGoFigOri in 1 of 4 Phases (20-23)
+                Log.Figsprite2(Trial) = 23+CorrespPhase(FigPhasePick);      % Fig2 NoGoFigOri phase offset pi, (24-27)  
+                Log.Unisprite(Trial) = 27+randi(4,1);                       % Uni  NoGoUniOri in 1 of 4 Phases (28-31)
             end
             
         else    % Test Stimuli
             switch Log.TestStim(Trial)
                 case 1
-                    Log.Fgsprite(Trial) = 6+randi(4,1);      % GoFigOri in 1 of 4 Phases (7-10)
-                    Log.Bgsprite(Trial) = 6;                 % Grey background
+                    FigPhasePick = randi(4,1);
+                    Log.Figsprite1(Trial) = 7+FigPhasePick;                 % Fig1 GoFigOri in 1 of 4 Phases (8-11)
+                    Log.Figsprite2(Trial) = 11+CorrespPhase(FigPhasePick);  % Fig2 GoFigOri phase offset pi, (12-15)
+                    Log.Unisprite(Trial) = 2;                               % Grey Uniform half
                 case 2
-                    Log.Fgsprite(Trial) = 5;                 % Grey Figure
-                    Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
+                    Log.Figsprite1(Trial) = 1;                              % Fig1 grey
+                    Log.Figsprite2(Trial) = 2;                              % Fig2 grey
+                    Log.Unisprite(Trial) = 15+randi(4,1);                   % Uni  GoUniOri in 1 of 4 Phases (16-19)
                 case 3
-                    Log.Fgsprite(Trial) = 14+randi(4,1);     % NoGoFigOri in 1 of 4 Phases (15-18)
-                    Log.Bgsprite(Trial) = 6;                 % Grey background
+                    FigPhasePick = randi(4,1);
+                    Log.Figsprite1(Trial) = 19+FigPhasePick;                % Fig1 NoGoFigOri in 1 of 4 Phases (20-23)
+                    Log.Figsprite2(Trial) = 23+CorrespPhase(FigPhasePick);  % Fig2 NoGoFigOri phase offset pi, (24-27)  
+                    Log.Unisprite(Trial) = 2;                               % Grey Uniform half
                 case 4
-                    Log.Fgsprite(Trial) = 5;                 % Grey Figure
-                    Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                    Log.Figsprite1(Trial) = 1;                              % Fig1 grey
+                    Log.Figsprite2(Trial) = 2;                              % Fig2 grey
+                    Log.Unisprite(Trial) = 27+randi(4,1);                   % Uni  NoGoUniOri in 1 of 4 Phases (28-31)
                 case 5
-                    Log.Fgsprite(Trial) = 6+randi(4,1);      % GoFigOri in 1 of 4 Phases (7-10)
-                    Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                    FigPhasePick = randi(4,1);
+                    Log.Figsprite1(Trial) = 7+FigPhasePick;                 % Fig1 GoFigOri in 1 of 4 Phases (8-11)
+                    Log.Figsprite2(Trial) = 11+CorrespPhase(FigPhasePick);  % Fig2 GoFigOri phase offset pi, (12-15)
+                    Log.Unisprite(Trial) = 27+randi(4,1);                   % Uni  NoGoUniOri in 1 of 4 Phases (28-31)
                 case 6
-                    Log.Fgsprite(Trial) = 14+randi(4,1);     % NoGoFigOri in 1 of 4 Phases (15-18)
-                    Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
+                    FigPhasePick = randi(4,1);
+                    Log.Figsprite1(Trial) = 19+FigPhasePick;                % Fig1 NoGoFigOri in 1 of 4 Phases (20-23)
+                    Log.Figsprite2(Trial) = 23+CorrespPhase(FigPhasePick);  % Fig2 NoGoFigOri phase offset pi, (24-27)  
+                    Log.Unisprite(Trial) = 15+randi(4,1);                   % Uni  GoUniOri in 1 of 4 Phases (16-19)
+                                        
             end
         end
         
@@ -419,8 +435,9 @@ try
         RunningDiff = toc(RunningTimer);
         
         % Show the Visual Stimulus   
-        cgdrawsprite(Log.Fgsprite(Trial),0,0)
-        cgdrawsprite(Log.Bgsprite(Trial),0,0)
+        cgdrawsprite(Log.Figsprite1(Trial),0,0)
+        cgdrawsprite(Log.Figsprite2(Trial),0,0)
+        cgdrawsprite(Log.Unisprite(Trial),0,0)
         cgflip(Par.grey)
         
         % Stimulus is there
