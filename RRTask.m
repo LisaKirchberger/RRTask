@@ -312,7 +312,7 @@ try
             Log.BgPhase(Trial) = NaN;
             Log.BgOri(Trial) = NaN;
             Log.FgOri(Trial) = NaN;
-            
+            Log.ApertureSize(Trial) = NaN;
             
         elseif Log.TaskPhase(Trial) == 2 || isnan(Log.TestStim(Trial))  || Log.TestStim(Trial) >= 7 % Go and NoGo Figure-Ground stimuli
             
@@ -333,17 +333,22 @@ try
             
             if Log.TestStim(Trial) <= 10
                 % make an Aperture Stimulus
+                fprintf('Test Trial: %g \n', Log.TestStim(Trial))
                 Log.ApertureSize(Trial) = Par.ApertureSizes(Log.TestStim(Trial)-6);
                 cogentAperture = makeUniformFullScreen(Par.greylum,2,Log.ApertureSize(Trial),gammaconversion); % 1 with circle, 0 without, 2 with blue circle
             elseif Log.TestStim(Trial) > 10
                 % make an Aperture Stimulus
+                fprintf('Test Trial: %g \n', Log.TestStim(Trial))
                 Log.ApertureSize(Trial) = Par.ApertureSizes(Log.TestStim(Trial)-10);
                 cogentAperture = makeUniformFullScreen(Par.greylum,2,Log.ApertureSize(Trial),gammaconversion); % 1 with circle, 0 without, 2 with blue circle
+            else
+                Log.ApertureSize(Trial) = NaN;
             end
             
         else     % Go or NoGo isolated or mixed
             
             fprintf('Test Trial: %g \n', Log.TestStim(Trial))
+            Log.ApertureSize(Trial) = NaN;
             switch Log.TestStim(Trial)
                 case 1
                     % Figure with GO grating
