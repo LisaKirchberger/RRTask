@@ -1,10 +1,10 @@
-% makeVisStimsprites
+% makeVisStimsprites_vs2
 
 if Par.FigSide == 1 %right
-    Par.FigX = 30;
+    Par.FigX = Par.ScreenAngleCoverage/4;
     Par.FigY = 0;
 elseif Par.FigSide == 2 %left
-    Par.FigX = -30;
+    Par.FigX = -Par.ScreenAngleCoverage/4;
     Par.FigY = 0;
 end
 

@@ -29,7 +29,7 @@ try
     def = {'Name', '1', datestr(datenum(date), 'yyyymmdd')};
     answer = inputdlg(prompt,'Please enter parameters',1,def);
     
-    Log.Task = 'RRTask';
+    Log.Task = 'RRTask_vs2';
     Log.TaskCondition = 'VR';
     Log.Mouse = answer{1};
     run checkMouse
@@ -94,6 +94,8 @@ try
     elseif strcmp(Log.Setup, 'Optosetup')
         run Params_Optosetup
     end
+    % in this version we do not want morphing
+    Par.morphingOn = 0;
     
     
     %% open Cogent

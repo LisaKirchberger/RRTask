@@ -52,7 +52,7 @@ Par.MouseposX = 61;                 % distance of mouse eyes in cm from left scr
 Par.MouseposY = 34;                 % distance of mouse eyes in cm from bottom of the screen
 Par.ScreenAngle = 90;               % in degrees, measured from table surface in front of screen to plane of screen (always 90 basically)
 Par.ScreenDistanceBottom = 14;      % distance of screen, in cm at bottom of screen (or perpendicular to the mouse, only differs if the Screen has an angle) 
-
+Par.ScreenAngleCoverage = atand((Par.ScreenWidth/2) / Par.ScreenDistance)*2;
 
 % dasbit parameters
 Par.Camport = 0;

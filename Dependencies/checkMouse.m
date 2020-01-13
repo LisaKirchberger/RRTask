@@ -28,12 +28,20 @@ end
 
 switch Log.Mouse
     case 'Test'
-        Par.GoFigOrient = 0;
-        Par.GoBgOrient = 90;
-        Par.NoGoFigOrient = 45;
-        Par.NoGoBgOrient = 135;
-        Par.FigX = 30;
-        Par.FigY = 0;
+        if strcmp(Log.Task, 'RRTask')
+            Par.GoFigOrient = 0;
+            Par.GoBgOrient = 90;
+            Par.NoGoFigOrient = 45;
+            Par.NoGoBgOrient = 135;
+            Par.FigX = 30;
+            Par.FigY = 0;
+        elseif strcmp(Log.Task, 'RRTask_vs2')
+            Par.GoFigOrient = 90;
+            Par.GoUniOrient = 135;
+            Par.NoGoFigOrient = 0;
+            Par.NoGoUniOrient = 45;
+            Par.FigSide = 1; %1 is right 2 is left 
+        end
         
     case 'Ariel'
         Par.GoFigOrient = 0;
@@ -64,21 +72,21 @@ switch Log.Mouse
         Par.GoUniOrient = 135;
         Par.NoGoFigOrient = 0;
         Par.NoGoUniOrient = 45;
-        Par.FigSide = 1; %1 is right (+30) 2 is left (-30)
+        Par.FigSide = 1; %1 is right 2 is left 
         
     case 'E' %VR mouse vs2
         Par.GoFigOrient = 0;
         Par.GoUniOrient = 135;
         Par.NoGoFigOrient = 90;
         Par.NoGoUniOrient = 45;
-        Par.FigSide = 2; %1 is right (+30) 2 is left (-30)
+        Par.FigSide = 2; %1 is right  2 is left
         
     case 'F' %VR mouse vs2
         Par.GoFigOrient = 135;
         Par.GoUniOrient = 90;
         Par.NoGoFigOrient = 45;
         Par.NoGoUniOrient = 0;
-        Par.FigSide = 1; %1 is right (+30) 2 is left (-30)
+        Par.FigSide = 1; %1 is right  2 is left 
         
 end
 

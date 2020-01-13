@@ -52,6 +52,7 @@ Par.MouseposX = 25.05;          % distance of mouse eyes in cm from left screen 
 Par.MouseposY = 14.5;           % distance of mouse eyes in cm from bottom of the screen
 Par.ScreenAngle = 90;           % in degrees, measured from table surface in front of screen to plane of screen (always 90 basically)
 Par.ScreenDistanceBottom = 11.8;% distance of screen, in cm at bottom of screen (or perpendicular to the mouse, only differs if the Screen has an angle) 
+Par.ScreenAngleCoverage = atand((Par.ScreenWidth/2) / Par.ScreenDistance)*2;
 
 % Audio
 Par.Aud_nchannels = 1;                  % number of channels, 1=mono, 2=stereo;
