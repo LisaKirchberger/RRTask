@@ -186,13 +186,13 @@ for i = 1:length(wrongFATrials)
     CombinedTable.Reactionidx(wrongFATrials(i)) = 1;
 end
 
-for t = [1 2 5 6]
+for t = [1 2 5 6 7 8 9 10]
     wantedTrials = find(CombinedTable.Passives == 0 & CombinedTable.TestStim ==t);
     Resp_rate_test(t) = sum(CombinedTable.Reactionidx(wantedTrials)==1)/length(wantedTrials);
     TestResp{t} = CombinedTable.Reactionidx(wantedTrials);
 end
 
-for t = [3 4]
+for t = [3 4 11 12 13 14]
     wantedTrials = find(CombinedTable.Passives == 0 & CombinedTable.TestStim ==t);
     Resp_rate_test(t) = sum(CombinedTable.Reactionidx(wantedTrials)==-1)/length(wantedTrials);
     TestResp{t} = CombinedTable.Reactionidx(wantedTrials);
@@ -217,7 +217,7 @@ end
 %% show the Hit/Miss/FA/CR distribution
 figure
 hold all
-for t = 1:6
+for t = 1:length(Resp_rate_test)
     for i = 1:length(TestResp{t})
         switch TestResp{t}(i)
             case 1 %Hit
@@ -235,8 +235,8 @@ box off
 set(gca, 'TickDir', 'out')
 xlabel('Trial')
 ylabel('Test Stimulus')
-ylim([0 7])
-yticks(1:6)
+ylim([0 length(Resp_rate_test)+1])
+yticks(1:length(Resp_rate_test))
 title(sprintf('Test Stimuli %s', Mousename))
 
 %% plot the d-prime for the TestPhase 
