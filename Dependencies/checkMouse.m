@@ -3,7 +3,7 @@
 correctNamesTest = {'Test'};
 correctNames191801 = {};
 correctNames191803 = {};
-correctNames191806 = {'Ariel', 'Bambi', 'Cruella', 'D', 'E', 'F'};
+correctNames191806 = {'Ariel', 'Bambi', 'Cruella', 'Dumbo', 'Elsa', 'Flower'};
 correctNames = [correctNamesTest correctNames191801 correctNames191803 correctNames191806];
 
 % compare with input mouse name
