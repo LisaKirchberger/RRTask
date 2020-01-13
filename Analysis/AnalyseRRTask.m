@@ -30,7 +30,7 @@ for Session = 1:nr_sessions
     
     load([LogfileDir '\' wanted_lognames{Session}])
     
-    if exist('Log', 'var') && exist('Log_table', 'var')
+    if exist('Log_table', 'var')
        
         %% combine the Log_tables
         
@@ -99,7 +99,10 @@ for Session = 1:nr_sessions
         end
         
         clear Log Log_table
-        
+    else
+        fprintf('%s \n',wanted_lognames{Session})
+        keyboard
+        clear Log Log_table
     end
 end
 
