@@ -4,107 +4,22 @@ clearvars
 close all
 clc
 
-%%
+%% load and combine the Logfiles
 
 Mice = {'Ariel', 'Bambi', 'Cruella'};
 Mousechoice = menu('Choose the Mouse',Mice);
 Mousename = Mice{Mousechoice};
 
-%LogfileDir = 'Z:\Lisa\FF_FB_Plasticity\Behavior_LOGs\RRTask';
-LogfileDir = 'D:\Dropbox\19.18.03 FF Plasticity\Logfiles';
+LogfileDir = 'D:\Dropbox\19.18.03 FF Plasticity\Logfiles';                  %LogfileDir = 'Z:\Lisa\FF_FB_Plasticity\Behavior_LOGs\RRTask';
 MatlabDir = pwd;
 
 cd(LogfileDir)
 lognames = dir([Mousename,'*']);
 cd(MatlabDir)
-dates1 = [lognames.datenum];
-same_day = find(diff(dates1)<0.8)+1;
-wanted_lognames = {lognames(:).name};
-nr_sessions = size(wanted_lognames,2);
-CombinedTable = table;
-DayCounter = 0;
-
-%% get the Data from all Sessions and combine it in CombinedTable
-
-for Session = 1:nr_sessions
-    
-    load([LogfileDir '\' wanted_lognames{Session}])
-    
-    if exist('Log_table', 'var')
-       
-        %% combine the Log_tables
-        
-        if ~ismember(Session, same_day)
-            DayCounter = DayCounter +1;
-        end
-        
-        % Add a Column to the Table with the SessID
-        Log_table.SessID = ones(size(Log_table,1),1).*DayCounter;
-        
-        % Sort the table columns
-        Log_table = Log_table(:,sort(Log_table.Properties.VariableNames));
-        cmpTables = cellfun(@(c)strcmp(c,Log_table.Properties.VariableNames),CombinedTable.Properties.VariableNames, 'UniformOutput', false);
-        missing_fields = Log_table.Properties.VariableNames(~sum(vertcat(cmpTables{:}),1));
-        cmpTables2 = cellfun(@(c)strcmp(c,CombinedTable.Properties.VariableNames),Log_table.Properties.VariableNames, 'UniformOutput', false);
-        missing_fields2 = CombinedTable.Properties.VariableNames(~sum(vertcat(cmpTables2{:}),1));
-
-       
-       % Fill missing fields with NaNs
-       if Session == 1
-           CombinedTable = Log_table;
-       elseif ~isempty(missing_fields) && ~isempty(missing_fields2)
-           % create the fields in the combined table and fill with NaNs
-           EmptyColumn = NaN(size(CombinedTable,1),1); %#ok<NASGU>
-           for f = 1:size(missing_fields,2)
-               FieldName = missing_fields{f};
-               eval(['CombinedTable.', FieldName, ' = EmptyColumn;'])
-           end
-           % sort the table columns
-           CombinedTable = CombinedTable(:,sort(CombinedTable.Properties.VariableNames));
-           % create the fields in the combined table and fill with NaNs
-           EmptyColumn = NaN(size(Log_table,1),1);
-           for f = 1:size(missing_fields2,2)
-               FieldName = missing_fields2{f};
-               eval(['Log_table.', FieldName, ' = EmptyColumn;'])
-           end
-           % sort the table columns
-           Log_table = Log_table(:,sort(Log_table.Properties.VariableNames));
-           % combine the tables
-           CombinedTable = [CombinedTable; Log_table]; %#ok<AGROW>
-       elseif ~isempty(missing_fields)
-           % create the fields in the combined table and fill with NaNs
-           EmptyColumn = NaN(size(CombinedTable,1),1);
-           for f = 1:size(missing_fields,2)
-               FieldName = missing_fields{f};
-               eval(['CombinedTable.', FieldName, ' = EmptyColumn;'])
-           end
-           % sort the table columns
-           CombinedTable = CombinedTable(:,sort(CombinedTable.Properties.VariableNames));
-           % combine the tables
-           CombinedTable = [CombinedTable; Log_table]; %#ok<AGROW>
-       elseif ~isempty(missing_fields2)
-           % create the fields in the combined table and fill with NaNs
-           EmptyColumn = NaN(size(Log_table,1),1);
-           for f = 1:size(missing_fields2,2)
-               FieldName = missing_fields2{f};
-               eval(['Log_table.', FieldName, ' = EmptyColumn;'])
-           end
-           % sort the table columns
-           Log_table = Log_table(:,sort(Log_table.Properties.VariableNames));
-           % combine the tables
-           CombinedTable = [CombinedTable; Log_table]; %#ok<AGROW>
-       else
-            % just combine the tables
-            CombinedTable = [CombinedTable; Log_table]; %#ok<AGROW>
-        end
-        
-        clear Log Log_table
-    else
-        fprintf('%s \n',wanted_lognames{Session})
-        keyboard
-        clear Log Log_table
-    end
+for Sess = 1:size(lognames,1)
+    LoadFiles{Sess} = [lognames(Sess).folder '\' lognames(Sess).name];      
 end
+CombinedTable = combineTables(LoadFiles);
 
 
 %% Learning progress Phase 1
@@ -115,7 +30,7 @@ wanted_Responses = CombinedTable.Reactionidx(wantedTrials);
 Hitrate = [];
 for i = 1:length(wantedTrials)
     if i <= windowsize/2
-        Hitrate(i) = sum(wanted_Responses(1:i+windowsize/2-1)==1)/(i+windowsize/2-1);
+        Hitrate(i) = sum(wanted_Responses(1:i+windowsize/2-1)==1)/(i+windowsize/2-1); %#ok<*SAGROW>
     elseif i > length(wanted_Responses)-windowsize/2
         Hitrate(i) = sum(wanted_Responses(i-windowsize/2:end)==1)/(length(wanted_Responses)-i+1+windowsize/2);
     else
@@ -173,8 +88,7 @@ ylabel('dprime')
 title(sprintf('Learning Progress Phase 2 %s', Mousename))
 
 
-%% Test Phase 3 or 4 or 5
-
+%% Correction of one File
 % have to correct sth, in the first Session Dropbox was turned off, so
 % conditions 5 and 6 were accidentally sometimes NoGo trials, correct this!
 % the wrong Logfile was called {Bambi_20191217_B1}, change all CR into Miss
@@ -189,6 +103,9 @@ for i = 1:length(wrongFATrials)
     CombinedTable.Reactionidx(wrongFATrials(i)) = 1;
 end
 
+
+%% Test Phase 3 or 4 or 5
+
 for t = [1 2 5 6 7 8 9 10]
     wantedTrials = find(CombinedTable.Passives == 0 & CombinedTable.TestStim ==t);
     Resp_rate_test(t) = sum(CombinedTable.Reactionidx(wantedTrials)==1)/length(wantedTrials);
@@ -200,21 +117,6 @@ for t = [3 4 11 12 13 14]
     Resp_rate_test(t) = sum(CombinedTable.Reactionidx(wantedTrials)==-1)/length(wantedTrials);
     TestResp{t} = CombinedTable.Reactionidx(wantedTrials);
 end
-
-
-% %% or
-% 
-% for t = [1 2 5 6]
-%     wantedTrials = find(CombinedTable.Passives == 0 & CombinedTable.TestStim ==t & CombinedTable.TaskPhase == 5);
-%     Resp_rate_test(t) = sum(CombinedTable.Reactionidx(wantedTrials)==1)/length(wantedTrials);
-%     TestResp{t} = CombinedTable.Reactionidx(wantedTrials);
-% end
-% 
-% for t = [3 4]
-%     wantedTrials = find(CombinedTable.Passives == 0 & CombinedTable.TestStim ==t & CombinedTable.TaskPhase == 5);
-%     Resp_rate_test(t) = sum(CombinedTable.Reactionidx(wantedTrials)==-1)/length(wantedTrials);
-%     TestResp{t} = CombinedTable.Reactionidx(wantedTrials);
-% end
 
 
 %% show the Hit/Miss/FA/CR distribution
@@ -241,6 +143,7 @@ ylabel('Test Stimulus')
 ylim([0 length(Resp_rate_test)+1])
 yticks(1:length(Resp_rate_test))
 title(sprintf('Test Stimuli %s', Mousename))
+
 
 %% plot the d-prime for the TestPhase 
 
@@ -275,16 +178,17 @@ xlabel('Trials')
 ylabel('dprime')
 title(sprintf('Accuracy Test Phase %s', Mousename))
 
-
 % overall d-prime
 dprime_testing_all = Calcdprime(wanted_Responses);
 Hitrate_all = sum(CombinedTable.Reactionidx(wantedTrials)==1)/(sum(CombinedTable.Reactionidx(wantedTrials)==1)+sum(CombinedTable.Reactionidx(wantedTrials)==0));
 FArate_all = sum(CombinedTable.Reactionidx(wantedTrials)==-1)/(sum(CombinedTable.Reactionidx(wantedTrials)==-1)+sum(CombinedTable.Reactionidx(wantedTrials)==2));
 
-%% 
+
+%% Visual Stimuli for each Mouse
+
 if 0
    % create and save the visual stimuli of this mouse as bmps
-   global Par
+   global Par %#ok<UNRCH>
    Log.Mouse = Mousename;
    run checkMouse
    run Params_Boxes
