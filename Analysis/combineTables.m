@@ -1,12 +1,41 @@
 function CombinedTable = combineTables(input)
 
-
 CombinedTable = table;
 DayCounter = 1;
 
 for Sess = 1:size(input,2)
     
-    load(input{Sess}, 'Log_table')
+    load(input{Sess})
+    if ~exist('Log_table', 'var')
+        load(input{Sess}, 'Log')
+        Trial = Log.Trial(end);
+        Log_table = table;
+        Log_fieldnames = fieldnames(Log);
+        for f = 1:length(Log_fieldnames)
+            FieldData = getfield(Log, char(Log_fieldnames(f))); %#ok<GFLD>
+            if ischar(FieldData)
+                FieldData = repmat(FieldData,Trial,1);
+            elseif length(FieldData) ~= Trial
+                FieldData(length(FieldData)+1:Trial) = NaN;
+                FieldData = FieldData';
+            else
+                FieldData = FieldData';
+            end
+            eval([ 'Log_table.' char(Log_fieldnames(f)), '=', 'FieldData', ';'])
+        end
+    end
+    
+    % Have to trick around a little bit, otherwise can't concatenate the table later
+    if isa(Log_table.Laserpower,'char')
+        Log_table.Laserpower = cellstr(Log_table.Laserpower);
+    end
+    if isa(Log_table.Setup, 'char')
+        Log_table.Setup = cellstr(Log_table.Setup);
+    end
+    if sum(strcmp('Exposure',Log_table.Properties.VariableNames))
+        Log_table.Exposure = table2array(varfun(@str2num, Log_table, 'InputVariables', 'Exposure'));
+    end
+        
     
     if Sess > 1 
        cmp_until = regexp(input{Sess}, '_'); cmp_until = cmp_until(end);
