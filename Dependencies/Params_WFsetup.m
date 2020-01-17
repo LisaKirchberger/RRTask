@@ -36,7 +36,6 @@ Par.DegPerPix = 1/Par.PixPerDeg;
 Par.RadPerPix = Par.DegPerPix*pi/180;
 
 
-Par.FigSize = 45;
 Par.RelativeApertureSizes = [1 2 4 8]; % 1 Bg same area as Fig, 2 Bg twice surface area as Fig, 4 Bg 4 times area as Fig, etc. 
 counter = 0;
 for p = Par.RelativeApertureSizes
@@ -47,7 +46,7 @@ end
 Par.SpatialFreq = 0.08;
 Par.Period = round(Par.PixPerDeg./Par.SpatialFreq);
 Par.PhaseOpt = 0:0.5*pi:2*pi-0.5*pi;
-Par.morphingOn = 0;
+
 
 Par.MouseposX = 61;                 % distance of mouse eyes in cm from left screen edge
 Par.MouseposY = 34;                 % distance of mouse eyes in cm from bottom of the screen

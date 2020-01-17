@@ -35,12 +35,18 @@ switch Log.Mouse
             Par.NoGoBgOrient = 135;
             Par.FigX = 30;
             Par.FigY = 0;
+            Par.FigSize = 40;
+            Par.morphingOn = 0;
+            
         elseif strcmp(Log.Task, 'RRTask_vs2')
             Par.GoFigOrient = 90;
             Par.GoUniOrient = 135;
             Par.NoGoFigOrient = 0;
             Par.NoGoUniOrient = 45;
             Par.FigSide = 1; %1 is right 2 is left 
+            Par.FigSize = 40;
+            Par.morphingOn = 0;
+            
         end
         
     case 'Ariel'
@@ -50,6 +56,8 @@ switch Log.Mouse
         Par.NoGoBgOrient = 135;
         Par.FigX = 30;
         Par.FigY = 0;
+        Par.FigSize = 35;
+        Par.morphingOn = 1;
         
     case 'Bambi'
         Par.GoFigOrient = 45;
@@ -58,6 +66,8 @@ switch Log.Mouse
         Par.NoGoBgOrient = 90;
         Par.FigX = 0;
         Par.FigY = 0;
+        Par.FigSize = 35;
+        Par.morphingOn = 1;
         
     case 'Cruella'
         Par.GoFigOrient = 90;
@@ -66,6 +76,8 @@ switch Log.Mouse
         Par.NoGoBgOrient = 45;
         Par.FigX = -30;
         Par.FigY = 0;
+        Par.FigSize = 35;
+        Par.morphingOn = 1;
         
     case 'D' %VR mouse vs2
         Par.GoFigOrient = 90;
@@ -73,6 +85,8 @@ switch Log.Mouse
         Par.NoGoFigOrient = 0;
         Par.NoGoUniOrient = 45;
         Par.FigSide = 1; %1 is right 2 is left 
+        Par.FigSize = 40;
+        Par.morphingOn = 0;
         
     case 'E' %VR mouse vs2
         Par.GoFigOrient = 0;
@@ -80,6 +94,8 @@ switch Log.Mouse
         Par.NoGoFigOrient = 90;
         Par.NoGoUniOrient = 45;
         Par.FigSide = 2; %1 is right  2 is left
+        Par.FigSize = 40;
+        Par.morphingOn = 0;
         
     case 'F' %VR mouse vs2
         Par.GoFigOrient = 135;
@@ -87,6 +103,8 @@ switch Log.Mouse
         Par.NoGoFigOrient = 45;
         Par.NoGoUniOrient = 0;
         Par.FigSide = 1; %1 is right  2 is left 
+        Par.FigSize = 40;
+        Par.morphingOn = 0;
         
 end
 

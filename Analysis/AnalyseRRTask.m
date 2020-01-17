@@ -186,9 +186,12 @@ FArate_all = sum(CombinedTable.Reactionidx(wantedTrials)==-1)/(sum(CombinedTable
 
 %% Visual Stimuli for each Mouse
 
-if 0
+if 1
    % create and save the visual stimuli of this mouse as bmps
    global Par %#ok<UNRCH>
+   cd ..
+   addpath(genpath('Dependencies'))
+   cd(MatlabDir)
    Log.Mouse = Mousename;
    run checkMouse
    run Params_Boxes
@@ -199,21 +202,17 @@ if 0
    cogstd('sPriority','high')
    run makeVisStimsprites
    Filepath = 'D:\Dropbox\19.18.07 RRTask\VisualStimuli';
-   ESC=0;
-   while ~ESC
-       Fgsprite = input('Input Figure Sprite \n');
-       Bgsprite = input('Input Background Sprite \n');
-       cgdrawsprite(Fgsprite,0,0)
-       cgdrawsprite(Bgsprite,0,0)
-       cgflip(Par.grey)
-       Filename = [Filepath, '\', Mousename, '_', num2str(Fgsprite), '_', num2str(Bgsprite)];
-       cgscrdmp(Filename)
-       [kd,kp] = cgkeymap;
-       if length(find(kp)) == 1
-           if find(kp) == 1
-               ESC = 1;
-           end
+   try
+       while 1
+           Fgsprite = input('Input Figure Sprite \n');          % e.g. 7 Go     15 NoGo
+           Bgsprite = input('Input Background Sprite \n');      % e.g. 11 Go    19 NoGo
+           cgdrawsprite(Fgsprite,0,0)
+           cgdrawsprite(Bgsprite,0,0)
+           cgflip(Par.grey)
+           Filename = [Filepath, '\', Mousename, '_', num2str(Fgsprite), '_', num2str(Bgsprite)];
+           cgscrdmp(Filename)
        end
+   catch
+       cgshut
    end
-   cgshut
 end

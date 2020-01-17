@@ -26,14 +26,20 @@ for Sess = 1:size(input,2)
     end
     
     % Have to trick around a little bit, otherwise can't concatenate the table later
-    if isa(Log_table.Laserpower,'char')
-        Log_table.Laserpower = cellstr(Log_table.Laserpower);
+    if any(strcmp('Laserpower', Log_table.Properties.VariableNames))
+        if isa(Log_table.Laserpower,'char')
+            Log_table.Laserpower = cellstr(Log_table.Laserpower);
+        end
     end
-    if isa(Log_table.Setup, 'char')
-        Log_table.Setup = cellstr(Log_table.Setup);
+    if any(strcmp('Setup', Log_table.Properties.VariableNames))
+        if isa(Log_table.Setup, 'char')
+            Log_table.Setup = cellstr(Log_table.Setup);
+        end
     end
-    if sum(strcmp('Exposure',Log_table.Properties.VariableNames))
-        Log_table.Exposure = table2array(varfun(@str2num, Log_table, 'InputVariables', 'Exposure'));
+    if any(strcmp('Exposure', Log_table.Properties.VariableNames))
+        if sum(strcmp('Exposure',Log_table.Properties.VariableNames))
+            Log_table.Exposure = table2array(varfun(@str2num, Log_table, 'InputVariables', 'Exposure'));
+        end
     end
         
     
