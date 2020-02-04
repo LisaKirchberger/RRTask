@@ -54,6 +54,12 @@ Par.ScreenAngle = 90;           % in degrees, measured from table surface in fro
 Par.ScreenDistanceBottom = 11.8;% distance of screen, in cm at bottom of screen (or perpendicular to the mouse, only differs if the Screen has an angle) 
 Par.ScreenAngleCoverage = atand((Par.ScreenWidth/2) / Par.ScreenDistance)*2;
 
+if isfield(Log, 'TaskCondition')
+    Par.ScreenDistance = 18;
+    Par.ScreenDistanceBottom = 18;
+end
+
+
 % Audio
 Par.Aud_nchannels = 1;                  % number of channels, 1=mono, 2=stereo;
 Par.Aud_nbits = 8;                      % Number of bits per sample, 8 or 16

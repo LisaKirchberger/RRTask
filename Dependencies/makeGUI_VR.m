@@ -19,7 +19,7 @@ Gui.Nexttrial= uicontrol('Style','text','Position',[60 190 70 15],'String','Defa
 
 % Task Phase
 uicontrol('Style','text','Position',[10 165 90 15],'String','TaskPhase');
-Gui.TaskPhase = uicontrol('Style', 'edit' , 'Position',[100 165 40 15] , 'String', '1');
+Gui.TaskPhase = uicontrol('Style', 'edit' , 'Position',[100 165 40 15] , 'String', '2');
 
 % GoTrialProportion
 uicontrol('Style','text','Position',[10 140 90 15],'String','GoTrialProportion');
