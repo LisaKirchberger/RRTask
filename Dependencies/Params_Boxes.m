@@ -2,13 +2,13 @@ global Par
 
 % Serial connections
 Par.sport = serial('com3');
-Par.running_port = [];
+Par.running_port = serial('com5');
 
 % Task Parameters
 Par.ITI = 4;                        % in seconds
 Par.FA_Timeout = 5;                 % in seconds
 Par.random_ITI = 2;                 % in seconds
-Par.maxSpeed = 5;
+Par.maxSpeed = 120;
 Par.DistanceThres = 1;
 
 % Setup Parameters

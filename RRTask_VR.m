@@ -1,8 +1,9 @@
 %%
-clear all %#ok<CLALL>
+clear all
 clc
+dbstop if error
 
-try
+%try
     %% Structure of this task:
     % Mouse is head fixed and runs on a treadmill
     % to get to the next trial the mouse has to run a certain distance on the treadmill
@@ -11,23 +12,17 @@ try
     % On NoGo Trials a figure-ground stimulus with different orientation(s) appears that is not rewarded, if the mice lick on No-Go trials a white
     % screen will appear and only disappears after a certain running distance
     
-    % need Arduino script: LickSensor_VR (!!!)
-    correctArduino = questdlg('Did you upload the Arduino Script called LickSensor_VR?','Attention','Yes','No', 'Yes');
-    if strcmp(correctArduino, 'No')
-        disp('upload correct Arduino Script and then press any key on keyboard to continue')
-        pause
-    end
     
     addpath(genpath(fullfile(pwd,'Dependencies')))
     addpath(genpath(fullfile(pwd,'Analysis')))
     
     addpath('Dependencies')
-    global Par Log %#ok<TLEV>
+    global Par Log
     
     %% Experiment Parameters
     
     prompt = {'Mouse Name', 'Exp Nr', 'Date'};
-    def = {'Name', '1', datestr(datenum(date), 'yyyymmdd')};
+    def = {'Test', '1', datestr(datenum(date), 'yyyymmdd')};
     answer = inputdlg(prompt,'Please enter parameters',1,def);
     
     Log.Task = 'RRTask';
@@ -133,6 +128,7 @@ try
     end
     set(Par.sport, 'baudrate', 250000);
     set(Par.sport, 'timeout', 0.1);
+    pause(0.2)
     sendtoard(Par.sport, 'ID');             % disable reward, just to be safe
     
     % start the connection to the Running Encoder Arduino
@@ -147,14 +143,15 @@ try
     
     %% make sprites of VR and all visual stimuli
     
+    disp('making visual stimuli please wait')
     run makeVisStimsprites
     run makeVRsprites
     
     
     %% make the GUI & initialize variables
     run makeGUI_VR
-    global stopaftertrial %#ok<TLEV>
-    global StartSession %#ok<TLEV>
+    global stopaftertrial 
+    global StartSession
     stopaftertrial = 0;
     StartSession = 0;
     TrialMatrix = [];
@@ -207,11 +204,12 @@ try
         Log.Threshold(Trial) = str2double(get(Gui.Threshold, 'string'));
         Log.GoTrialProportion(Trial) = str2double(get(Gui.GoTrialProportion, 'string'));
         Log.PassPerc(Trial) = str2double(get(Gui.PassPerc, 'string'));
-        Log.Passivedelay(Trial) = str2double(get(Gui.Passivedelay, 'string'));
+        Log.PassiveDist(Trial) = str2double(get(Gui.PassiveDist, 'string'));
         Log.VRDist(Trial) = str2double(get(Gui.VRDist, 'string'));
         Log.VisStimDist(Trial) = str2double(get(Gui.VisStimDist, 'string'));
         Log.FADist(Trial) = str2double(get(Gui.FADist, 'string'));
         Log.ConversionFactor(Trial) = str2double(get(Gui.ConversionFactor, 'string'));
+        Log.GraceDist(Trial) = str2double(get(Gui.GraceDist, 'string'));
         
         
         %% Write Parameters to Arduino
@@ -308,7 +306,7 @@ try
                 Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
             else
                 Log.Fgsprite(Trial) = 14+randi(4,1);     % NoGoFigOri in 1 of 4 Phases (15-18)
-                Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                Log.Bgsprite(Trial) = 18+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
             end
             
         else    % Test Stimuli
@@ -324,10 +322,10 @@ try
                     Log.Bgsprite(Trial) = 6;                 % Grey background
                 case 4
                     Log.Fgsprite(Trial) = 5;                 % Grey Figure
-                    Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                    Log.Bgsprite(Trial) = 18+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
                 case 5
                     Log.Fgsprite(Trial) = 6+randi(4,1);      % GoFigOri in 1 of 4 Phases (7-10)
-                    Log.Bgsprite(Trial) = 19+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
+                    Log.Bgsprite(Trial) = 18+randi(4,1);     % NoGoBgOri in 1 of 4 Phases (19-22)
                 case 6
                     Log.Fgsprite(Trial) = 14+randi(4,1);     % NoGoFigOri in 1 of 4 Phases (15-18)
                     Log.Bgsprite(Trial) = 10+randi(4,1);     % GoBgOri in 1 of 4 Phases (11-14)
@@ -379,7 +377,7 @@ try
 
             % Check the running speed
             checkRunning
-            CurrDistance = CurrDistance + Speed.*1/Par.Refresh;
+            CurrDistance = CurrDistance + (Speed.*1/Par.Refresh.*Log.ConversionFactor(Trial));
             
             % Check if should move on to next Sprite
             if CurrDistance > Par.DistanceThres
@@ -437,12 +435,11 @@ try
         end
         
         Enable = 1;
-        LickEnabled = 0;
         TotalSpriteCounter = 1;
         CurrDistance = 0;
         
         % Mouse runs through Stimulus corridor 
-        while TotalSpriteCounter <= Log.VisStimDist(Trial) && ~strcmp(Reaction, 'F')
+        while TotalSpriteCounter <= Log.VisStimDist(Trial) && ~strcmp(Reaction, 'F') && ~strcmp(Reaction, 'H') 
             
             % at each refresh of the Screen read out the speed of the mouse
             % and determine the distance it ran in this time
@@ -450,7 +447,7 @@ try
             
             % Check the running speed
             checkRunning
-            CurrDistance = CurrDistance + Speed.*1/Par.Refresh;
+            CurrDistance = CurrDistance + (Speed.*1/Par.Refresh.*Log.ConversionFactor(Trial));
             
             % Check if crossed distance Threshold to next sprite
             if CurrDistance > Par.DistanceThres
@@ -462,22 +459,19 @@ try
             checkLicks_VR
             
             % Enable the Lick Spout (once)
-            if toc(StimOnset) > Log.GraceDuration && Enable
+            if Enable && TotalSpriteCounter > Log.GraceDist(Trial)
                 if Log.Trialtype(Trial) == 1    % Go Trial
                     fprintf(Par.sport, 'IE 1');
                 else                            % No Go Trial
                     fprintf(Par.sport, 'IE 2');
                 end
                 Enable = 0;
-                LickEnabled = 1;
             end
             
             % Give a passive if wanted (once)
-            if Log.Passives(Trial) && toc(StimOnset) > Log.Passivedelay(Trial) && ~gavepassive
+            if Log.Passives(Trial) && TotalSpriteCounter > Log.PassiveDist(Trial) && ~gavepassive
                 fprintf(Par.sport, 'IP');          % give passive
                 gavepassive = 1;
-                Enable = 0;
-                LickEnabled = 1;
                 cprintf([0.2 0.2 0.2], 'passive trial \n')
             end
             
@@ -512,7 +506,7 @@ try
             while TotalSpriteCounter <= Log.FADist(Trial)
                 cgflip('V')
                 checkRunning
-                CurrDistance = CurrDistance + Speed.*1/Par.Refresh;
+                CurrDistance = CurrDistance + (Speed.*1/Par.Refresh.*Log.ConversionFactor(Trial));
                 if CurrDistance > Par.DistanceThres
                     TotalSpriteCounter = TotalSpriteCounter + 1;
                     CurrDistance = 0;
@@ -649,12 +643,13 @@ try
         save([Par.Save_Location2 '\' Log.Mouse Log.Expnum] , 'Log', 'Par', 'Log_table', 'RunningTimecourseAVG')
     end
     
-catch ME
-    
-    disp(ME)
-    
-end
+% catch ME
+%     
+%     disp(ME)
+%     
+% end
 
+%%
 cogstd('sPriority','normal')
 cgshut
 

@@ -28,8 +28,8 @@ Gui.GoTrialProportion = uicontrol('Style', 'edit' , 'Position', [100 140 40 15],
 % Passives
 uicontrol('Style','text','Position',[10 120 90 15],'String','Passive Perc');
 Gui.PassPerc = uicontrol('Style', 'edit' , 'Position', [100 120 40 15], 'String', '0');
-uicontrol('Style','text','Position',[10 105 90 15],'String','Passive Delay');
-Gui.Passivedelay = uicontrol('Style', 'edit' , 'Position', [100 105 40 15], 'String', '0');
+uicontrol('Style','text','Position',[10 105 90 15],'String','Passive Dist');
+Gui.PassiveDist = uicontrol('Style', 'edit' , 'Position', [100 105 40 15], 'String', '0');
 
 % Lick Detection Threshold
 Gui.LickValue = uicontrol('Style', 'text', 'Position', [10 20 60 15], 'String', '0');
@@ -53,12 +53,13 @@ NextNoGo = uicontrol('Style','pushbutton','Position',[240 195 75 30],'String','N
 uicontrol('Style','text','Position',[175 160 90 15],'String','VR Dist');
 Gui.VRDist = uicontrol('Style', 'edit' , 'Position', [270 160 40 15], 'String', '200');
 uicontrol('Style','text','Position',[175 145 90 15],'String','Visual Stim Dist');
-Gui.VisualStimDist = uicontrol('Style', 'edit' , 'Position', [270 145 40 15], 'String', '50');
+Gui.VisStimDist = uicontrol('Style', 'edit' , 'Position', [270 145 40 15], 'String', '100');
 uicontrol('Style','text','Position',[175 130 90 15],'String','FA Dist');
-Gui.FADist = uicontrol('Style', 'edit' , 'Position', [270 130 40 15], 'String', '50');
+Gui.FADist = uicontrol('Style', 'edit' , 'Position', [270 130 40 15], 'String', '120');
 uicontrol('Style','text','Position',[160 115 130 15],'String','Conversion Factor');
-Gui.ConversionFactor = uicontrol('Style', 'edit' , 'Position', [270 115 40 15], 'String', '3');
-
+Gui.ConversionFactor = uicontrol('Style', 'edit' , 'Position', [270 115 40 15], 'String', '5');
+uicontrol('Style','text','Position',[175 100 90 15],'String','Grace Dist');
+Gui.GraceDist = uicontrol('Style', 'edit' , 'Position', [270 100 40 15], 'String', '0');
 
 % Responses
 % Hit

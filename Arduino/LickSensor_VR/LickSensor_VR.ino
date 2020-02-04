@@ -5,7 +5,7 @@ CapacitiveSensor   cs_4_2 = CapacitiveSensor(4, 2);       // 10M resistor betwee
 #define Reward 10 //output
 
 int Rewardtime = 200;           // Time the Valve will be open for in ms when reward is given
-float PassiveScale = 1.0;       // Fraction of reward given as a passive
+float PassiveScale = 0.5;       // Fraction of reward given as a passive
 int Enable = 0;                 // Enables the Valve to be opened
 
 unsigned long Trialtime = 0;
@@ -68,7 +68,6 @@ void checkSerial() {
         digitalWrite(Reward, HIGH);
         delay(Rewardtime * PassiveScale);
         digitalWrite(Reward, LOW);
-        Enable = 0;
         break;
 
       case 'F':
@@ -98,11 +97,11 @@ void openValve( ) {
 
 
 void printLick() {
-  Serial.print("L");
+  Serial.println("L");
 }
 
 void printReaction(char* m) {
-  Serial.print("X");
+  Serial.println("X");
   Serial.println(m);
   Serial.println(runtime - Trialtime);
   Serial.println(SerOut);

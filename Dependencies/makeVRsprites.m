@@ -5,7 +5,7 @@
 
 % Initialize some variables
 NumLinesVR = 20;            % number of lines
-StepSize = 20;              % number of stetps per cycle
+StepSize = 6;              % number of stetps per cycle
 MinRad = 10;                % starting position
 BGCol = [0 0 0];            % BG Color
 HorizonCol = Par.grey; % Horizon Color
