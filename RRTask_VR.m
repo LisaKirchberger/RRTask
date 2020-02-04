@@ -3,7 +3,7 @@ clear all
 clc
 dbstop if error
 
-%try
+try
     %% Structure of this task:
     % Mouse is head fixed and runs on a treadmill
     % to get to the next trial the mouse has to run a certain distance on the treadmill
@@ -643,11 +643,11 @@ dbstop if error
         save([Par.Save_Location2 '\' Log.Mouse Log.Expnum] , 'Log', 'Par', 'Log_table', 'RunningTimecourseAVG')
     end
     
-% catch ME
-%     
-%     disp(ME)
-%     
-% end
+catch ME
+    
+    disp(ME)
+    
+end
 
 %%
 cogstd('sPriority','normal')

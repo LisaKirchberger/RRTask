@@ -1,7 +1,7 @@
 /* motion encoder for mouse Treadmill
-/ Opto Setup usually COM12
-/ WF Setup usually COM10
-//c van der Togt, 18/03/2014 usually com12 */
+/ Opto Setup      COM12
+/ WF Setup        COM10  
+/ Boxes           COM5                  */
 
 #define encPinA 2 
 #define encPinB 3 
