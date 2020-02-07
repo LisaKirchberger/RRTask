@@ -478,7 +478,6 @@ try
         end
         
         % End of Trial
-        cgflip(Par.grey)
         Log.Stimdur(Trial) = toc(StimOnset);
         sendtoard(Par.sport, 'ID');     % disable the lick reward
         if strcmp(Log.Setup, 'WFsetup')
@@ -488,6 +487,7 @@ try
 
         % Stop recording and turn camera off if this is in the WF setup
         if strcmp(Log.Setup, 'WFsetup')
+            cgflip(Par.grey)
             while toc(WFtimer) < Par.PostStimTime
                 checkLicks_VR
                 checkRunning
@@ -502,6 +502,7 @@ try
         if strcmp(Reaction, 'F') 
             TotalSpriteCounter = 1;
             CurrDistance = 0;
+            cgflip(Par.white)
             cgflip(Par.white)
             while TotalSpriteCounter <= Log.FADist(Trial)
                 cgflip('V')

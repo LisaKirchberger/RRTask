@@ -17,7 +17,7 @@ if Namecmp == 0
         case 'Correct'
             fprintf('you chose to stick with %s /n', Log.Mouse);
         case 'Change Name'
-           Log.Mouse = correctNames{menu('Choose the Mouse',correctNames)};
+            Log.Mouse = correctNames{menu('Choose the Mouse',correctNames)};
     end
 end
 
@@ -43,7 +43,7 @@ switch Log.Mouse
             Par.GoUniOrient = 135;
             Par.NoGoFigOrient = 0;
             Par.NoGoUniOrient = 45;
-            Par.FigSide = 1; %1 is right 2 is left 
+            Par.FigSide = 1; %1 is right 2 is left
             Par.FigSize = 40;
             Par.morphingOn = 0;
             
@@ -79,30 +79,33 @@ switch Log.Mouse
         Par.FigSize = 35;
         Par.morphingOn = 1;
         
-    case 'D' %VR mouse vs2
-        Par.GoFigOrient = 90;
-        Par.GoUniOrient = 135;
-        Par.NoGoFigOrient = 0;
-        Par.NoGoUniOrient = 45;
-        Par.FigSide = 1; %1 is right 2 is left 
-        Par.FigSize = 40;
-        Par.morphingOn = 0;
-        
-    case 'E' %VR mouse vs2
+    case 'Dumbo' %VR
         Par.GoFigOrient = 0;
-        Par.GoUniOrient = 135;
-        Par.NoGoFigOrient = 90;
-        Par.NoGoUniOrient = 45;
-        Par.FigSide = 2; %1 is right  2 is left
+        Par.GoBgOrient = 135;
+        Par.NoGoFigOrient = 45;
+        Par.NoGoBgOrient = 90;
+        Par.FigX = 30;
+        Par.FigY = 0;
         Par.FigSize = 40;
         Par.morphingOn = 0;
         
-    case 'F' %VR mouse vs2
-        Par.GoFigOrient = 135;
-        Par.GoUniOrient = 90;
-        Par.NoGoFigOrient = 45;
-        Par.NoGoUniOrient = 0;
-        Par.FigSide = 1; %1 is right  2 is left 
+    case 'Elsa' %VR mouse vs2
+        Par.GoFigOrient = 45;
+        Par.GoBgOrient = 90;
+        Par.NoGoFigOrient = 0;
+        Par.NoGoBgOrient = 135;
+        Par.FigX = 30;
+        Par.FigY = 0;
+        Par.FigSize = 40;
+        Par.morphingOn = 0;
+        
+    case 'Flower' %VR mouse vs2
+        Par.GoFigOrient = 90;
+        Par.GoBgOrient = 135;
+        Par.NoGoFigOrient = 0;
+        Par.NoGoBgOrient = 45;
+        Par.FigX = 30;
+        Par.FigY = 0;
         Par.FigSize = 40;
         Par.morphingOn = 0;
         
