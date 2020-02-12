@@ -439,7 +439,7 @@ try
         CurrDistance = 0;
         
         % Mouse runs through Stimulus corridor 
-        while TotalSpriteCounter <= Log.VisStimDist(Trial) && ~strcmp(Reaction, 'F') && ~strcmp(Reaction, 'H') 
+        while TotalSpriteCounter <= Log.VisStimDist(Trial) %&& ~strcmp(Reaction, 'F') && ~strcmp(Reaction, 'H') 
             
             % at each refresh of the Screen read out the speed of the mouse
             % and determine the distance it ran in this time
