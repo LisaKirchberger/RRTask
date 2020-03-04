@@ -37,7 +37,7 @@ Gui.Threshold = uicontrol('Style', 'edit' , 'Position', [75 20 60 15], 'String',
 
 % Rewardtime
 uicontrol('Style', 'text', 'Position', [10 0 60 15], 'String', 'Reward');
-Gui.RewardDur = uicontrol('Style', 'edit' , 'Position', [75 0 40 15], 'String', '200');
+Gui.RewardDur = uicontrol('Style', 'edit' , 'Position', [75 0 40 15], 'String', '225');
 
 % Startbutton
 Gui.StartButton = uicontrol('Style','pushbutton','Position',[150 235 75 15],'String','Start','Callback',@startfunction);
@@ -51,9 +51,9 @@ NextNoGo = uicontrol('Style','pushbutton','Position',[240 195 75 30],'String','N
 
 % Virtual Reality
 uicontrol('Style','text','Position',[175 160 90 15],'String','VR Dist');
-Gui.VRDist = uicontrol('Style', 'edit' , 'Position', [270 160 40 15], 'String', '200');
+Gui.VRDist = uicontrol('Style', 'edit' , 'Position', [270 160 40 15], 'String', '150');
 uicontrol('Style','text','Position',[175 145 90 15],'String','Visual Stim Dist');
-Gui.VisStimDist = uicontrol('Style', 'edit' , 'Position', [270 145 40 15], 'String', '100');
+Gui.VisStimDist = uicontrol('Style', 'edit' , 'Position', [270 145 40 15], 'String', '50');
 uicontrol('Style','text','Position',[175 130 90 15],'String','FA Dist');
 Gui.FADist = uicontrol('Style', 'edit' , 'Position', [270 130 40 15], 'String', '120');
 uicontrol('Style','text','Position',[160 115 130 15],'String','Conversion Factor');
@@ -92,7 +92,7 @@ runningplot = subplot(2,1,2);
 set(runningplot, 'Position', [0.15 0.46 0.8 0.16])
 title('Running')
 ylabel('Speed')
-axis([-2 1.5 -10 100])
+axis([-1 1.5 -10 100])
 box off
 hold(runningplot, 'on')
 drawnow

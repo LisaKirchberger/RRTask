@@ -45,7 +45,7 @@ for i = 4:-1:1
 end
 
 % make plot more pretty
-axis(runningplot, [-2 1.5 -10 40])
+axis(runningplot, [-1 1.5 -10 40])
 box(runningplot, 'off')
 
 
