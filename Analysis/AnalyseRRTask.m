@@ -6,7 +6,7 @@ clc
 
 %% load and combine the Logfiles
 
-Mice = {'Ariel', 'Bambi', 'Cruella'};
+Mice = {'Ariel', 'Bambi', 'Cruella', 'Dumbo', 'Flower'};
 Mousechoice = menu('Choose the Mouse',Mice);
 Mousename = Mice{Mousechoice};
 
@@ -204,8 +204,8 @@ if 1
    Filepath = 'D:\Dropbox\19.18.07 RRTask\VisualStimuli';
    try
        while 1
-           Fgsprite = input('Input Figure Sprite \n');          % e.g. 7 Go     15 NoGo
-           Bgsprite = input('Input Background Sprite \n');      % e.g. 11 Go    19 NoGo
+           Fgsprite = input('Input Figure Sprite \n');          % e.g. 7 Go     15 NoGo     5 grey
+           Bgsprite = input('Input Background Sprite \n');      % e.g. 11 Go    19 NoGo     6 grey
            cgdrawsprite(Fgsprite,0,0)
            cgdrawsprite(Bgsprite,0,0)
            cgflip(Par.grey)
